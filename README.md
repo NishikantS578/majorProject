@@ -12,10 +12,11 @@
 ## How to build
 ```
 cd <path to root of project>
-go build -C src/ -o ../build/
+go -C ./src mod tidy
+go -C ./src build -o ../build
 ```
 
 ## Usage
 ```
-mnm <path to program file> // Compiles your code
+mnm <path to program file> // Compiles your mnm code
 ```
