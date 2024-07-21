@@ -4,6 +4,7 @@
 
 ## For development
 - go
+- gofmt
 
 ## Others
 - nasm
@@ -13,7 +14,7 @@
 ```
 cd <path to root of project>
 go -C ./src mod tidy
-go -C ./src build -o ../build
+./build.sh
 ```
 
 ## Usage

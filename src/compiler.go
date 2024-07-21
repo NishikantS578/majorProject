@@ -1,76 +1,56 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
-func main(){
-	fmt.Println("Hello")
+type TokenType int
+
+var STR_TOKEN_TYPE [3]string = [3]string{
+	"return",
+	"integerLiteral",
+	"semicolon",
 }
 
-// #include <iostream>
-// #include <fstream>
-// #include <vector>
-// #include <optional>
-// #include <cstdint>
+type Token struct {
+	typeOfToken TokenType
+	value       string
+}
 
-// enum TokenType{
-//     _return,
-//     integerLiteral,
-//     semicolon
-// };
+func tokenize(str string) []Token {
+	var tokenArr []Token
+	return tokenArr
+}
 
-// struct Token{
-//     TokenType type;
-//     std::optional<std::string> value;
-// };
+func checkError(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
-// std::vector<Token> tokenize(std::string str, int size){
-//     std::vector<Token> tokenArr = {};
-//     for(int i = 0; i < str)
-//     return tokenArr;
-// }
+func main() {
+	// var t Token
 
-// int main(int argc, char* argv[]){
-//     if(argc != 2){
-//         std::cout<<"Incorrect usage.\n";
-//         std::cout<<"Correct usage: compiler <input.mnm>\n";
-//         return 0;
-//     }
+	var cmdArgs []string = os.Args
+	if len(cmdArgs) != 2 {
+		fmt.Println("Incorrect usage.")
+		fmt.Println("Correct usage: compiler <input.mnm>")
+		return
+	}
 
-//     std::string fileName = argv[1];
-//     int fileSize = 0;
-//     std::string fileContent;
+	var fileName string = cmdArgs[1]
+	var fileBuffer []byte
+	var fileContent string
+	var err error
 
-//     std::fstream inputFile(fileName, std::ios_base::in);
-//     if(!inputFile.is_open()){
-//         std::cout<<"Failed to open file: "<<fileName<<"\n";
-//     }
+	fileBuffer, err = os.ReadFile(fileName)
+	checkError(err)
+	fileContent = string(fileBuffer)
 
-//     inputFile.seekg(0, std::ios_base::end);
-//     fileSize = inputFile.tellg();
-//     inputFile.seekg(0, std::ios_base::beg);
-//     fileContent.resize(fileSize);
-//     inputFile.read(&fileContent[0], fileSize);
-//     inputFile.close();
-
-//     std::vector<Token> tokenArr;
-//     tokenArr = tokenize(fileContent, fileSize);
-//     for(Token t: tokenArr){
-//         switch(t.type){
-//             case _return:{
-//                 std::cout<<"return ";
-//                 break;
-//             }
-//             case integerLiteral:{
-//                 std::cout<<"integer-literal ";
-//                 break;
-//             }
-//             case semicolon:{
-//                 std::cout<<"semicolon ";
-//                 break;
-//             }
-//         }
-//         std::string val = t.value.value_or("");
-//         std::cout<<std::endl;
-//     }
-//     return 0;
-// }
+	var tokenArr []Token
+	tokenArr = tokenize(fileContent)
+	for _, t := range tokenArr {
+		fmt.Println(STR_TOKEN_TYPE[t.typeOfToken], t.value)
+	}
+}

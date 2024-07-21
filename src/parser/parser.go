@@ -2,6 +2,6 @@ package parser
 
 import "fmt"
 
-func Parse(){
+func Parse() {
 	fmt.Println("Parsing")
 }
