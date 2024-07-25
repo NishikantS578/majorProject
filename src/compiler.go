@@ -21,24 +21,22 @@ func main() {
 
 	var fileName string = cmdArgs[1]
 	var fileBuffer []byte
-	var fileContent string
 	var err error
 
 	fileBuffer, err = os.ReadFile(fileName)
 	checkError(err)
-	fileContent = string(fileBuffer)
 
-	var tokenArr []Token
 	var assemblyCode = ""
 
-	var sourceProgram Tokenizer
-	sourceProgram.initialize(fileContent)
-	tokenArr = tokenize(sourceProgram)
+	var tokenizer Tokenizer
+	tokenizer.initialize(string(fileBuffer))
 
-	fmt.Println("==============================Tokens==============================")
-	for _, t := range tokenArr {
-		fmt.Println(STR_TOKEN_TYPE[t.typeOfToken], t.value)
-	}
+	var parser Parser
+	parser.initialize(tokenizer.tokenize())
 
-	os.WriteFile("./a.nasm", []byte(assemblyCode), 0644)
+	var generator Generator
+	generator.initialize(parser.parse())
+	assemblyCode = generator.generate()
+
+	os.WriteFile("./app.asm", []byte(assemblyCode), 0644)
 }

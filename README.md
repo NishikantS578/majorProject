@@ -8,7 +8,7 @@
 
 ## Others
 - nasm
-- gcc
+- gcc (ld)
 
 ## How to build
 ```
@@ -20,4 +20,14 @@ go -C ./src mod tidy
 ## Usage
 ```
 mnm <path to program file> // Compiles your mnm code
+nasm -felf64 app.nasm -o out.o && ld -o <app name> out.o && ./<app name> //for 64-bit
 ```
+
+# Tasks
+- [x] Basic Lexer.
+- [x] Basic Parser.
+- [x] Basic Generator.
+- [ ] Add variables.
+- [ ] Add most of data types.
+- [ ] GUI Text/Code Editor.
+- [ ] GUI Visual Editor.

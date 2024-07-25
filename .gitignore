@@ -1,2 +1,4 @@
 build/
-*.nasm
+*.asm
+*.o
+*.out
