@@ -20,7 +20,7 @@ go -C ./src mod tidy
 ## Usage
 ```
 mnm <path to program file> // Compiles your mnm code
-nasm -felf64 app.nasm -o out.o && ld -o <app name> out.o && ./<app name> //for 64-bit
+nasm -felf64 app.asm -o out.o && ld -o <app name> out.o && ./<app name> //for 64-bit
 ```
 
 # Tasks

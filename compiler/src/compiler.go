@@ -39,4 +39,5 @@ func main() {
 	assemblyCode = generator.generate()
 
 	os.WriteFile("./app.asm", []byte(assemblyCode), 0644)
+	println("Compilation successfull")
 }
