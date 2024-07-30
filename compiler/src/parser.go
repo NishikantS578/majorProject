@@ -61,16 +61,6 @@ func (parser *Parser) consume() Token {
 	return token
 }
 
-func (parser *Parser) parseStmt() NodeStmt {
-	var stmtNode NodeStmt
-	var token = parser.peek()
-	if false {
-	} else if token.typeOfToken == EXIT_TOKEN {
-		stmtNode = NodeStmt{exitStmtNode: &NodeExitStmt{}}
-	}
-	return stmtNode
-}
-
 func (parser *Parser) parseExitStmt() NodeExitStmt {
 	var exitStmtNode NodeExitStmt
 	var token = parser.consume()
@@ -104,6 +94,38 @@ func (parser *Parser) parseExitStmt() NodeExitStmt {
 	return exitStmtNode
 }
 
+func (parser *Parser) parseVarDefStmt() NodeVarDefStmt {
+	var varDefStmtNode NodeVarDefStmt = NodeVarDefStmt{}
+	parser.consume()
+	var token Token = parser.consume()
+
+	var identNode NodeIdent
+	if token.typeOfToken == IDENTIFIER_TOKEN {
+		identNode.ident = token
+	} else {
+		println("Unexpected Token: " + token.value)
+		os.Exit(0)
+	}
+	varDefStmtNode.ident = &identNode
+
+	token = parser.consume()
+	if token.typeOfToken != ASSIGNMENT_OPERATOR_TOKEN {
+		println("Unexpected Token: " + token.value)
+		os.Exit(0)
+	}
+
+	var exprNode NodeExpr = parser.parseExpr()
+	varDefStmtNode.exprNode = &exprNode
+
+	token = parser.consume()
+	if token.typeOfToken != SEMICOLON_TOKEN {
+		println("Unexpected Token: " + token.value)
+		os.Exit(0)
+	}
+
+	return varDefStmtNode
+}
+
 func (parser *Parser) parseExpr() NodeExpr {
 	var exprNode NodeExpr
 	var token = parser.consume()
@@ -120,15 +142,19 @@ func (parser *Parser) parse() NodeProg {
 	var rootNode NodeProg = NodeProg{stmtNodes: []NodeStmt{}}
 
 	var token Token = parser.peek()
+	var stmtNode NodeStmt
 	for token != (Token{}) {
 		if token.typeOfToken == EXIT_TOKEN {
-			var stmtNode NodeStmt
 			parser.parseExitStmt()
 			stmtNode = NodeStmt{exitStmtNode: &NodeExitStmt{}}
 			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else if token.typeOfToken == LET_TOKEN {
+			var varDefNode = parser.parseVarDefStmt()
+			stmtNode = NodeStmt{varDefNode: &varDefNode}
+			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else {
-			parser.consume()
+			println("Unexpected Token: " + token.value)
+			os.Exit(0)
 		}
 		token = parser.peek()
 	}
