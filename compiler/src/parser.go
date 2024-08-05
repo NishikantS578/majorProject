@@ -9,8 +9,8 @@ type NodeProg struct {
 }
 
 type NodeStmt struct {
-	exitStmtNode *NodeExitStmt
-	varDefNode   *NodeVarDefStmt
+	exitStmtNode   *NodeExitStmt
+	varDefStmtNode *NodeVarDefStmt
 }
 
 type NodeExitStmt struct {
@@ -145,12 +145,12 @@ func (parser *Parser) parse() NodeProg {
 	var stmtNode NodeStmt
 	for token != (Token{}) {
 		if token.typeOfToken == EXIT_TOKEN {
-			parser.parseExitStmt()
-			stmtNode = NodeStmt{exitStmtNode: &NodeExitStmt{}}
+			var exitStmtNode = parser.parseExitStmt()
+			stmtNode = NodeStmt{exitStmtNode: &exitStmtNode}
 			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else if token.typeOfToken == LET_TOKEN {
-			var varDefNode = parser.parseVarDefStmt()
-			stmtNode = NodeStmt{varDefNode: &varDefNode}
+			var varDefStmtNode = parser.parseVarDefStmt()
+			stmtNode = NodeStmt{varDefStmtNode: &varDefStmtNode}
 			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else {
 			println("Unexpected Token: " + token.value)

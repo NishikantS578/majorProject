@@ -1,2 +1,3 @@
-let x = 9;
-exit (x) ;
+let x = 10;
+let y = x;
+exit(y);

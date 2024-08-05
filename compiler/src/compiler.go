@@ -26,8 +26,6 @@ func main() {
 	fileBuffer, err = os.ReadFile(fileName)
 	checkError(err)
 
-	var assemblyCode = ""
-
 	var tokenizer Tokenizer
 	tokenizer.initialize(string(fileBuffer))
 
@@ -36,8 +34,8 @@ func main() {
 
 	var generator Generator
 	generator.initialize(parser.parse())
-	assemblyCode = generator.generate()
+	generator.generateProg()
 
-	os.WriteFile("./app.asm", []byte(assemblyCode), 0644)
+	os.WriteFile("./app.asm", []byte(generator.assemblyCode), 0644)
 	println("Compilation successfull")
 }
