@@ -1,6 +1,6 @@
 // '' for keywords
 
-prog: stmt*
+prog: stmt+
 
 stmt: 
     | 'exit' '(' expr ')' ';'
@@ -9,6 +9,10 @@ stmt:
 expr:
     | int_lit
     | ident
+    | expr '+' expr 
+    | expr '-' expr
+    | expr '*' expr
+    | expr '/' expr
 
 ident: 
 

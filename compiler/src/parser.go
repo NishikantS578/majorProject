@@ -22,9 +22,16 @@ type NodeVarDefStmt struct {
 	exprNode *NodeExpr
 }
 
+type NodeBinExpr struct{
+	op rune
+	lhsExprNode *NodeExpr
+	rhsExprNode *NodeExpr
+}
+
 type NodeExpr struct {
 	intLitNode *NodeIntLit
 	identNode  *NodeIdent
+	binExprNode *NodeBinExpr
 }
 
 type NodeIntLit struct {
@@ -128,11 +135,14 @@ func (parser *Parser) parseVarDefStmt() NodeVarDefStmt {
 
 func (parser *Parser) parseExpr() NodeExpr {
 	var exprNode NodeExpr
-	var token = parser.consume()
+	var token = parser.peek()
 	if token.typeOfToken == INTEGER_LITERAL_TOKEN {
 		exprNode = NodeExpr{intLitNode: &NodeIntLit{intLit: token}}
+		parser.consume()
 	} else if token.typeOfToken == IDENTIFIER_TOKEN {
 		exprNode = NodeExpr{identNode: &NodeIdent{token}}
+		parser.consume()
+	} else {
 	}
 
 	return exprNode
