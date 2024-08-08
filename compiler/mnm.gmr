@@ -1,0 +1,15 @@
+// '' for keywords
+
+prog: stmt*
+
+stmt: 
+    | 'exit' '(' expr ')' ';'
+    | 'let' ident '=' epxr ';'
+
+expr:
+    | int_lit
+    | ident
+
+ident: 
+
+int_lit: [0-9]+
