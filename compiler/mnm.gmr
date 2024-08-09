@@ -4,16 +4,30 @@ prog: stmt+
 
 stmt: 
     | 'exit' '(' expr ')' ';'
-    | 'let' ident '=' epxr ';'
+    | 'let' ident '=' [term epxr] ';'
 
 expr:
+    | add_expr
+    | sub_expr
+    | mul_expr
+    | div_expr
+
+add_expr:
+    | [expr term] '+' [expr term]
+
+sub_expr:
+    | [expr term] '-' [expr term]
+
+mul_expr:
+    | [expr term] '*' [expr term]
+
+div_expr:
+    | [expr term] '/' [expr term]
+
+term:
     | int_lit
     | ident
-    | expr '+' expr 
-    | expr '-' expr
-    | expr '*' expr
-    | expr '/' expr
 
-ident: 
+ident: [a-z A-Z _] [a-z A-Z 0-9 _]*
 
 int_lit: [0-9]+

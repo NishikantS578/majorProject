@@ -13,6 +13,10 @@ const (
 	LET_TOKEN
 	IDENTIFIER_TOKEN
 	ASSIGNMENT_OPERATOR_TOKEN
+	PLUS_TOKEN
+	SUBTRACTION_TOKEN
+	MULTIPLICATION_TOKEN
+	DIVISION_TOKEN
 	INTEGER_LITERAL_TOKEN
 	SEMICOLON_TOKEN
 	OPENING_PARENTHESIS_TOKEN
@@ -24,6 +28,10 @@ var tokenName map[TokenType]string = map[TokenType]string{
 	LET_TOKEN:                 "let keyword",
 	IDENTIFIER_TOKEN:          "Identifier",
 	ASSIGNMENT_OPERATOR_TOKEN: "Assignment operator",
+	PLUS_TOKEN:                "Addition operator",
+	SUBTRACTION_TOKEN:         "Subtraction operator",
+	MULTIPLICATION_TOKEN:      "Multiplication operator",
+	DIVISION_TOKEN:            "Division operator",
 	INTEGER_LITERAL_TOKEN:     "Integer literal",
 	SEMICOLON_TOKEN:           "Semicolon",
 	OPENING_PARENTHESIS_TOKEN: "Opening parenthesis",
@@ -97,6 +105,11 @@ func (programTokenizer *Tokenizer) tokenize() []Token {
 		} else if currentRune == '=' {
 			programTokenizer.buf += string(currentRune)
 			tokenArr = append(tokenArr, Token{typeOfToken: ASSIGNMENT_OPERATOR_TOKEN, value: programTokenizer.buf})
+			programTokenizer.buf = ""
+			currentRune = programTokenizer.consume()
+		} else if currentRune == '+' {
+			programTokenizer.buf += string(currentRune)
+			tokenArr = append(tokenArr, Token{typeOfToken: PLUS_TOKEN, value: programTokenizer.buf})
 			programTokenizer.buf = ""
 			currentRune = programTokenizer.consume()
 		} else if currentRune == '(' {

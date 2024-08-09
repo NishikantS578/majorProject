@@ -31,23 +31,53 @@ func (generator *Generator) pop(reg string) {
 	generator.stackSize--
 }
 
-func (generator *Generator) generateExpr(expr *NodeExpr) {
-	if expr.intLitNode != nil {
-		generator.assemblyCode += "mov rax, " + expr.intLitNode.intLit.value + "\n"
-		generator.push("rax")
-	} else if expr.identNode != nil {
-		varLoc, ok := generator.vars[expr.identNode.ident.value]
+func (generator *Generator) generateTerm(termNode *NodeTerm) {
+	if termNode.identNode != nil {
+		varLoc, ok := generator.vars[termNode.identNode.ident.value]
 		if !ok {
-			println("Undeclared Identifier: " + expr.identNode.ident.value)
+			println("Undeclared Identifier: " + termNode.identNode.ident.value)
 			os.Exit(0)
 		}
 		generator.push(fmt.Sprintf("QWORD [rsp + %d]", (generator.stackSize-varLoc.stackLoc-1)*8))
+	} else if termNode.intLitNode != nil {
+		generator.assemblyCode += "mov rax, " + termNode.intLitNode.intLit.value + "\n"
+		generator.push("rax")
+	}
+}
+
+func (generator *Generator) generateAddExpr(addExprNode *NodeAddExpr) {
+	if addExprNode.lExprNode != nil {
+		generator.generateExpr(addExprNode.lExprNode)
+	} else if addExprNode.lTermNode != nil {
+		generator.generateTerm(addExprNode.lTermNode)
+	}
+
+	if addExprNode.rExprNode != nil {
+		generator.generateExpr(addExprNode.rExprNode)
+	} else if addExprNode.rTermNode != nil {
+		generator.generateTerm(addExprNode.rTermNode)
+	}
+	generator.pop("rax")
+	generator.pop("rbx")
+	generator.assemblyCode += "add rax, rbx\n"
+	generator.push("rax")
+}
+
+func (generator *Generator) generateExpr(expr *NodeExpr) {
+	if expr.addExprNode != nil {
+		generator.generateAddExpr(expr.addExprNode)
+	} else {
+		println("Expected expression")
 	}
 }
 
 func (generator *Generator) generateStmt(stmt NodeStmt) {
 	if stmt.exitStmtNode != nil {
-		generator.generateExpr(stmt.exitStmtNode.exprNode)
+		if stmt.exitStmtNode.exprNode != nil {
+			generator.generateExpr(stmt.exitStmtNode.exprNode)
+		} else if stmt.exitStmtNode.termNode != nil {
+			generator.generateTerm(stmt.exitStmtNode.termNode)
+		}
 		generator.assemblyCode += "mov rax, 60\n"
 		generator.pop("rdi")
 		generator.assemblyCode += "syscall\n"
@@ -59,7 +89,11 @@ func (generator *Generator) generateStmt(stmt NodeStmt) {
 		}
 		var identifier = stmt.varDefStmtNode.ident.ident.value
 		generator.vars[identifier] = Variable{stackLoc: generator.stackSize}
-		generator.generateExpr(stmt.varDefStmtNode.exprNode)
+		if stmt.varDefStmtNode.exprNode != nil {
+			generator.generateExpr(stmt.varDefStmtNode.exprNode)
+		} else if stmt.varDefStmtNode.termNode != nil {
+			generator.generateTerm(stmt.varDefStmtNode.termNode)
+		}
 	}
 }
 
