@@ -1,0 +1,39 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.menubar {
+    display: flex;
+    background-color: black;
+}
+
+.menubar>button {
+    background: none;
+    font-size: x-large;
+    border: 1px solid grey;
+    color: white;
+    margin: 0.1rem;
+    padding: 0.5rem 1rem;
+}
+
+.editorTab {
+    resize: none;
+    padding: 0;
+    border: 1px solid grey;
+    width: 100%;
+    flex: 1 1 0;
+    font-size: 2rem;
+}
+
+.editorTab:focus-visible{
+    outline: none;
+}

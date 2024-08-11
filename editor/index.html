@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <link rel="stylesheet" href="./index.css">
+  <title>Editor</title>
+</head>
+
+<body>
+  <div class="menubar">
+    <button id="open">Open</button>
+    <button id="save">Save</button>
+  </div>
+  <textarea class="editorTab"></textarea>
+</body>
+<script src="./renderer.js" type="module" defer></script>
+
+</html>
