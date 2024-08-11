@@ -22,7 +22,7 @@ func (generator *Generator) initialize(parseTree NodeProg) {
 }
 
 func (generator *Generator) push(reg string) {
-	generator.assemblyCode += "push " + reg + "\n"
+	generator.assemblyCode += "push " + reg + "\n\n"
 	generator.stackSize++
 }
 
@@ -34,6 +34,7 @@ func (generator *Generator) pop(reg string) {
 func (generator *Generator) generateTerm(termNode *NodeTerm) {
 	if termNode.identNode != nil {
 		varLoc, ok := generator.vars[termNode.identNode.ident.value]
+		println(termNode.identNode.ident.value, varLoc.stackLoc)
 		if !ok {
 			println("Undeclared Identifier: " + termNode.identNode.ident.value)
 			os.Exit(0)
@@ -42,30 +43,54 @@ func (generator *Generator) generateTerm(termNode *NodeTerm) {
 	} else if termNode.intLitNode != nil {
 		generator.assemblyCode += "mov rax, " + termNode.intLitNode.intLit.value + "\n"
 		generator.push("rax")
+	} else if termNode.exprNode != nil {
+		generator.generateExpr(termNode.exprNode)
 	}
 }
 
-func (generator *Generator) generateAddExpr(addExprNode *NodeAddExpr) {
-	if addExprNode.lExprNode != nil {
-		generator.generateExpr(addExprNode.lExprNode)
-	} else if addExprNode.lTermNode != nil {
-		generator.generateTerm(addExprNode.lTermNode)
+func (generator *Generator) generateFactor(factor *NodeFactor) {
+	if factor.op == 0 {
+		generator.generateTerm(factor.lTermNode)
+	} else if factor.rTermNode == nil {
+		generator.generateTerm(factor.lTermNode)
+	} else if factor.lTermNode != nil {
+		generator.generateTerm(factor.lTermNode)
+		generator.generateTerm(factor.rTermNode)
+		if factor.op == '*' {
+			generator.pop("rbx")
+			generator.pop("rax")
+			generator.assemblyCode += "mul rbx\n\n"
+			generator.push("rax")
+		} else if factor.op == '/' {
+			generator.pop("rbx")
+			generator.pop("rax")
+			generator.assemblyCode += "div rbx\n\n"
+			generator.push("rax")
+		}
+	} else {
+		println("Expected expression")
 	}
-
-	if addExprNode.rExprNode != nil {
-		generator.generateExpr(addExprNode.rExprNode)
-	} else if addExprNode.rTermNode != nil {
-		generator.generateTerm(addExprNode.rTermNode)
-	}
-	generator.pop("rax")
-	generator.pop("rbx")
-	generator.assemblyCode += "add rax, rbx\n"
-	generator.push("rax")
 }
 
 func (generator *Generator) generateExpr(expr *NodeExpr) {
-	if expr.addExprNode != nil {
-		generator.generateAddExpr(expr.addExprNode)
+	if expr.op == 0 {
+		generator.generateFactor(expr.lFactorNode)
+	} else if expr.rFactorNode == nil {
+		generator.generateFactor(expr.lFactorNode)
+	} else if expr.lFactorNode != nil {
+		generator.generateFactor(expr.lFactorNode)
+		generator.generateFactor(expr.rFactorNode)
+		if expr.op == '+' {
+			generator.pop("rdi")
+			generator.pop("rax")
+			generator.assemblyCode += "add rax, rdi\n\n"
+			generator.push("rax")
+		} else if expr.op == '-' {
+			generator.pop("rdi")
+			generator.pop("rax")
+			generator.assemblyCode += "sub rax, rdi\n\n"
+			generator.push("rax")
+		}
 	} else {
 		println("Expected expression")
 	}

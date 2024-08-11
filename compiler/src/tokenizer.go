@@ -112,6 +112,21 @@ func (programTokenizer *Tokenizer) tokenize() []Token {
 			tokenArr = append(tokenArr, Token{typeOfToken: PLUS_TOKEN, value: programTokenizer.buf})
 			programTokenizer.buf = ""
 			currentRune = programTokenizer.consume()
+		} else if currentRune == '-' {
+			programTokenizer.buf += string(currentRune)
+			tokenArr = append(tokenArr, Token{typeOfToken: SUBTRACTION_TOKEN, value: programTokenizer.buf})
+			programTokenizer.buf = ""
+			currentRune = programTokenizer.consume()
+		} else if currentRune == '*' {
+			programTokenizer.buf += string(currentRune)
+			tokenArr = append(tokenArr, Token{typeOfToken: MULTIPLICATION_TOKEN, value: programTokenizer.buf})
+			programTokenizer.buf = ""
+			currentRune = programTokenizer.consume()
+		} else if currentRune == '/' {
+			programTokenizer.buf += string(currentRune)
+			tokenArr = append(tokenArr, Token{typeOfToken: DIVISION_TOKEN, value: programTokenizer.buf})
+			programTokenizer.buf = ""
+			currentRune = programTokenizer.consume()
 		} else if currentRune == '(' {
 			programTokenizer.buf += string(currentRune)
 			tokenArr = append(tokenArr, Token{typeOfToken: OPENING_PARENTHESIS_TOKEN, value: programTokenizer.buf})

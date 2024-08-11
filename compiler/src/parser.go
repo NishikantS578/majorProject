@@ -27,41 +27,19 @@ type NodeVarDefStmt struct {
 type NodeTerm struct {
 	intLitNode *NodeIntLit
 	identNode  *NodeIdent
+	exprNode   *NodeExpr
 }
 
-type NodeAddExpr struct {
-	lExprNode *NodeExpr
+type NodeFactor struct {
+	op        rune
 	lTermNode *NodeTerm
-	rExprNode *NodeExpr
-	rTermNode *NodeTerm
-}
-
-type NodeSubExpr struct {
-	lExprNode *NodeExpr
-	lTermNode *NodeTerm
-	rExprNode *NodeExpr
-	rTermNode *NodeTerm
-}
-
-type NodeMulExpr struct {
-	lExprNode *NodeExpr
-	lTermNode *NodeTerm
-	rExprNode *NodeExpr
-	rTermNode *NodeTerm
-}
-
-type NodeDivExpr struct {
-	lExprNode *NodeExpr
-	lTermNode *NodeTerm
-	rExprNode *NodeExpr
 	rTermNode *NodeTerm
 }
 
 type NodeExpr struct {
-	addExprNode *NodeAddExpr
-	subExprNode *NodeSubExpr
-	mulExprNode *NodeMulExpr
-	divExprNode *NodeDivExpr
+	op          rune
+	lFactorNode *NodeFactor
+	rFactorNode *NodeFactor
 }
 
 type NodeIntLit struct {
@@ -165,7 +143,7 @@ func (parser *Parser) parseVarDefStmt() NodeVarDefStmt {
 
 	token = parser.consume()
 	if token.typeOfToken != SEMICOLON_TOKEN {
-		println("Unexpected Token: " + token.value + " // Expected ';'")
+		println("Unexpected Token: '" + token.value + "' // Expected ';'")
 		os.Exit(0)
 	}
 
@@ -177,57 +155,92 @@ func (parser *Parser) parseTerm() NodeTerm {
 
 	var token = parser.peek(0)
 	if token.typeOfToken == INTEGER_LITERAL_TOKEN {
+		parser.consume()
 		termNode.intLitNode = &NodeIntLit{intLit: token}
 	} else if token.typeOfToken == IDENTIFIER_TOKEN {
+		parser.consume()
 		termNode.identNode = &NodeIdent{token}
+	} else if token.typeOfToken == OPENING_PARENTHESIS_TOKEN {
+		parser.consume()
+		var exprNode = parser.parseExpr()
+		termNode.exprNode = &exprNode
+		if token.typeOfToken != CLOSING_PARENTHESIS_TOKEN {
+			println("Expected ')'")
+		}
+		parser.consume()
 	}
-	parser.consume()
 
 	return termNode
 }
 
-func (parser *Parser) parseAddExpr() NodeAddExpr {
-	var addExprNode NodeAddExpr
+func (parser *Parser) parseFactor() NodeFactor {
+	var factorNode *NodeFactor = &NodeFactor{}
+	var tFactorNode *NodeFactor
 
-	var lExprNode NodeExpr
-	var lTerm NodeTerm
-	var rExprNode NodeExpr
-	var rTerm NodeTerm
+	var lTermNode = parser.parseTerm()
+	factorNode.lTermNode = &lTermNode
+	var rTermNode NodeTerm
 
-	lTerm = parser.parseTerm()
-	if lTerm == (NodeTerm{}) {
-		lExprNode = parser.parseExpr()
-		addExprNode.lExprNode = &lExprNode
-	} else {
-		addExprNode.lTermNode = &lTerm
+	var token = parser.peek(0)
+	for token.typeOfToken == MULTIPLICATION_TOKEN || token.typeOfToken == DIVISION_TOKEN {
+		var op rune
+		if token.typeOfToken == MULTIPLICATION_TOKEN {
+			op = '*'
+		} else if token.typeOfToken == DIVISION_TOKEN {
+			op = '/'
+		}
+
+		parser.consume()
+		rTermNode = parser.parseTerm()
+		factorNode.rTermNode = &rTermNode
+		factorNode.op = op
+
+		tFactorNode = factorNode
+		factorNode = &NodeFactor{}
+		factorNode.lTermNode = &NodeTerm{}
+		factorNode.lTermNode.exprNode = &NodeExpr{}
+		factorNode.lTermNode.exprNode.lFactorNode = tFactorNode
+
+		token = parser.peek(0)
 	}
 
-	parser.consume()
-
-	rExprNode = parser.parseExpr()
-	if rExprNode == (NodeExpr{}) {
-		rTerm = parser.parseTerm()
-		addExprNode.rTermNode = &rTerm
-	} else {
-		addExprNode.rExprNode = &rExprNode
-	}
-
-	return addExprNode
+	return *factorNode
 }
 
 func (parser *Parser) parseExpr() NodeExpr {
-	var exprNode NodeExpr
+	var exprNode *NodeExpr = &NodeExpr{}
+	var tExprNode *NodeExpr
 
-	var token = parser.peek(1)
-	if token.typeOfToken == PLUS_TOKEN {
-		var NodeAddExpr = parser.parseAddExpr()
-		exprNode.addExprNode = &NodeAddExpr
-	} else if token.typeOfToken == SUBTRACTION_TOKEN {
-	} else if token.typeOfToken == MULTIPLICATION_TOKEN {
-	} else if token.typeOfToken == DIVISION_TOKEN {
+	var lFactorNode = parser.parseFactor()
+	exprNode.lFactorNode = &lFactorNode
+
+	var rFactorNode NodeFactor
+
+	var token = parser.peek(0)
+
+	for token.typeOfToken == PLUS_TOKEN || token.typeOfToken == SUBTRACTION_TOKEN {
+		var op rune
+		if token.typeOfToken == PLUS_TOKEN {
+			op = '+'
+		} else if token.typeOfToken == SUBTRACTION_TOKEN {
+			op = '-'
+		}
+
+		parser.consume()
+		rFactorNode = parser.parseFactor()
+		exprNode.rFactorNode = &NodeFactor{}
+		*exprNode.rFactorNode = rFactorNode
+		exprNode.op = op
+
+		tExprNode = exprNode
+		exprNode = &NodeExpr{}
+		exprNode.lFactorNode = &NodeFactor{}
+		exprNode.lFactorNode.lTermNode = &NodeTerm{}
+		exprNode.lFactorNode.lTermNode.exprNode = tExprNode
+
+		token = parser.peek(0)
 	}
-
-	return exprNode
+	return *exprNode
 }
 
 func (parser *Parser) parse() NodeProg {
@@ -242,6 +255,7 @@ func (parser *Parser) parse() NodeProg {
 			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else if token.typeOfToken == LET_TOKEN {
 			var varDefStmtNode = parser.parseVarDefStmt()
+
 			stmtNode = NodeStmt{varDefStmtNode: &varDefStmtNode}
 			rootNode.stmtNodes = append(rootNode.stmtNodes, stmtNode)
 		} else {

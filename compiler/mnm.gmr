@@ -1,30 +1,20 @@
 // '' for keywords
+// 1. It should not be left recursive.
+// 2. It should be left-factored. (Alternates should not have common prefixes).
+// 3. Language should have a recursion facility.
 
-prog: stmt+
+prog: { stmt }
 
 stmt: 
     | 'exit' '(' expr ')' ';'
     | 'let' ident '=' [term epxr] ';'
 
-expr:
-    | add_expr
-    | sub_expr
-    | mul_expr
-    | div_expr
+expr: factor { ['+' '-'] factor }
 
-add_expr:
-    | [expr term] '+' [expr term]
-
-sub_expr:
-    | [expr term] '-' [expr term]
-
-mul_expr:
-    | [expr term] '*' [expr term]
-
-div_expr:
-    | [expr term] '/' [expr term]
+factor: term { ['*' '/'] term }
 
 term:
+    | '(' expr ')'
     | int_lit
     | ident
 

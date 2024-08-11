@@ -1,3 +1,6 @@
 let x = 9;
-let y = x + 3;
+let a = 2;
+let b = 17;
+let c = 11;
+let y = ((5 - 2) + x) * a - b / c;
 exit(y);
