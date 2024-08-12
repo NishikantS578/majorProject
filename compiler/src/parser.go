@@ -155,19 +155,19 @@ func (parser *Parser) parseTerm() NodeTerm {
 
 	var token = parser.peek(0)
 	if token.typeOfToken == INTEGER_LITERAL_TOKEN {
-		parser.consume()
+		token = parser.consume()
 		termNode.intLitNode = &NodeIntLit{intLit: token}
 	} else if token.typeOfToken == IDENTIFIER_TOKEN {
-		parser.consume()
+		token = parser.consume()
 		termNode.identNode = &NodeIdent{token}
 	} else if token.typeOfToken == OPENING_PARENTHESIS_TOKEN {
-		parser.consume()
+		token = parser.consume()
 		var exprNode = parser.parseExpr()
 		termNode.exprNode = &exprNode
+		token = parser.consume()
 		if token.typeOfToken != CLOSING_PARENTHESIS_TOKEN {
 			println("Expected ')'")
 		}
-		parser.consume()
 	}
 
 	return termNode

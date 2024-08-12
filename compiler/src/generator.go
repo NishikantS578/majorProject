@@ -34,7 +34,6 @@ func (generator *Generator) pop(reg string) {
 func (generator *Generator) generateTerm(termNode *NodeTerm) {
 	if termNode.identNode != nil {
 		varLoc, ok := generator.vars[termNode.identNode.ident.value]
-		println(termNode.identNode.ident.value, varLoc.stackLoc)
 		if !ok {
 			println("Undeclared Identifier: " + termNode.identNode.ident.value)
 			os.Exit(0)
