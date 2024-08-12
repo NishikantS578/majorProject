@@ -2,5 +2,5 @@ let x = 9;
 let a = 2;
 let b = 17;
 let c = 11;
-let y = ((5 - 2) + x) * a - b / c;
+let y = ((5 - 2) + x) * a - b / c -5;
 exit(y);

@@ -30,9 +30,14 @@ app.whenReady().then(() => {
 })
 
 const saveFile = (e, fileContent) => {
-    dialog.showSaveDialog().then((res) => {
+    dialog.showSaveDialog({
+        filters: [
+            { name: "Eminem Files", extensions: ["mnm"] },
+            { name: "All Files", extensions: ["*"] },
+        ]
+    }).then((res) => {
         fs.writeFile(res.filePath, fileContent, (err) => {
-            if(err != null){
+            if (err != null) {
                 console.log(err)
             }
         })
@@ -40,8 +45,13 @@ const saveFile = (e, fileContent) => {
 }
 
 const openFile = (e, win) => {
-    dialog.showOpenDialog().then((res) => {
-        if(res.filePaths[0] == undefined){
+    dialog.showOpenDialog({
+        filters: [
+            { name: "Eminem Files", extensions: ["mnm"] },
+            { name: "All Files", extensions: ["*"] },
+        ]
+    }).then((res) => {
+        if (res.filePaths[0] == undefined) {
             return
         }
         openedFilePath = res.filePaths[0]
@@ -52,7 +62,10 @@ const openFile = (e, win) => {
 }
 
 const compileAndRun = (e, win) => {
-    exec(" ../compiler/build/mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr)=>{
+    exec(" mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr) => {
         win.webContents.send("compiledAndRun", stdout + stderr + err.code)
+        exec("rm ./app.asm ./out.o ./a.out", (err) => {
+
+        })
     })
 }
