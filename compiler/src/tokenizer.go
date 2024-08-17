@@ -142,7 +142,7 @@ func (programTokenizer *Tokenizer) tokenize() []Token {
 			tokenArr = append(tokenArr, Token{typeOfToken: SEMICOLON_TOKEN, value: programTokenizer.buf})
 			programTokenizer.buf = ""
 			currentRune = programTokenizer.consume()
-		} else if currentRune == ' ' || currentRune == '\n' {
+		} else if currentRune == ' ' || currentRune == '\n' || currentRune == '\r' {
 			currentRune = programTokenizer.consume()
 		} else {
 			println("Undefined symbol: '" + string(currentRune) + "'")
