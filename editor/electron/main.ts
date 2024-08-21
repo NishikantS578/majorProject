@@ -41,6 +41,10 @@ function createWindow() {
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
+
+    ipcMain.handle("saveFile", saveFile)
+    ipcMain.handle("openFile", (e) => openFile(e, win))
+    ipcMain.handle("compileAndRun", (e) => compileAndRun(e, win))
   })
 
   if (VITE_DEV_SERVER_URL) {
@@ -67,51 +71,47 @@ app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow()
   }
-
-  ipcMain.handle("saveFile", saveFile)
-  ipcMain.handle("openFile", (e) => openFile(e, win))
-  ipcMain.handle("compileAndRun", (e) => compileAndRun(e, win))
 })
 
 const saveFile = (e: any, fileContent: any) => {
-    dialog.showSaveDialog({
-        filters: [
-            { name: "Eminem Files", extensions: ["mnm"] },
-            { name: "All Files", extensions: ["*"] },
-        ]
-    }).then((res) => {
-        fs.writeFile(res.filePath, fileContent, (err) => {
-            if (err != null) {
-                console.log(err)
-            }
-        })
+  dialog.showSaveDialog({
+    filters: [
+      { name: "Eminem Files", extensions: ["mnm"] },
+      { name: "All Files", extensions: ["*"] },
+    ]
+  }).then((res) => {
+    fs.writeFile(res.filePath, fileContent, (err) => {
+      if (err != null) {
+        console.log(err)
+      }
     })
+  })
 }
 
 const openFile = (e: any, win: any) => {
-    dialog.showOpenDialog({
-        filters: [
-            { name: "Eminem Files", extensions: ["mnm"] },
-            { name: "All Files", extensions: ["*"] },
-        ]
-    }).then((res) => {
-        if (res.filePaths[0] == undefined) {
-            return
-        }
-        openedFilePath = res.filePaths[0]
-        fs.readFile(res.filePaths[0], "utf-8", (err, fileContent) => {
-            win.webContents.send("openedFile", fileContent)
-        })
+  dialog.showOpenDialog({
+    filters: [
+      { name: "Eminem Files", extensions: ["mnm"] },
+      { name: "All Files", extensions: ["*"] },
+    ]
+  }).then((res) => {
+    if (res.filePaths[0] == undefined) {
+      return
+    }
+    openedFilePath = res.filePaths[0]
+    fs.readFile(res.filePaths[0], "utf-8", (err, fileContent) => {
+      win.webContents.send("openedFile", fileContent)
     })
+  })
 }
 
-const compileAndRun = (e:any, win:any) => {
-    exec(" mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr) => {
-        win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
-        exec("rm ./app.asm ./out.o ./a.out", (err) => {
+const compileAndRun = (e: any, win: any) => {
+  exec(" mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr) => {
+    win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
+    exec("rm ./app.asm ./out.o ./a.out", (err) => {
 
-        })
     })
+  })
 }
 
 app.whenReady().then(createWindow)
