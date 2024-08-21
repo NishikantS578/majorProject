@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron'
-import { createRequire } from 'node:module'
+// import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import fs from "fs"
@@ -7,7 +7,7 @@ import { exec } from "node:child_process"
 
 let openedFilePath = ""
 
-const require = createRequire(import.meta.url)
+// const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // The built directory structure
@@ -73,7 +73,7 @@ app.on('activate', () => {
   }
 })
 
-const saveFile = (e: any, fileContent: any) => {
+const saveFile = (_: any, fileContent: any) => {
   dialog.showSaveDialog({
     filters: [
       { name: "Eminem Files", extensions: ["mnm"] },
@@ -88,7 +88,7 @@ const saveFile = (e: any, fileContent: any) => {
   })
 }
 
-const openFile = (e: any, win: any) => {
+const openFile = (_: any, win: any) => {
   dialog.showOpenDialog({
     filters: [
       { name: "Eminem Files", extensions: ["mnm"] },
@@ -99,16 +99,16 @@ const openFile = (e: any, win: any) => {
       return
     }
     openedFilePath = res.filePaths[0]
-    fs.readFile(res.filePaths[0], "utf-8", (err, fileContent) => {
+    fs.readFile(res.filePaths[0], "utf-8", (_, fileContent) => {
       win.webContents.send("openedFile", fileContent)
     })
   })
 }
 
-const compileAndRun = (e: any, win: any) => {
+const compileAndRun = (_: any, win: any) => {
   exec(" mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr) => {
     win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
-    exec("rm ./app.asm ./out.o ./a.out", (err) => {
+    exec("rm ./app.asm ./out.o ./a.out", (_) => {
 
     })
   })
