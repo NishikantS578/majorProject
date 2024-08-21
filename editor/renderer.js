@@ -8,15 +8,29 @@ saveBtn.addEventListener("mousedown", (e) => {
     versions.saveFile(inputEl.value)
 })
 
+export const save =  (e) => {
+    versions.saveFile(inputEl.value)
+}
+
 openBtn.addEventListener("mousedown", (e) => {
     versions.openFile().then(() => {
     })
 })
 
+export const open = (e) => {
+    versions.openFile().then(() => {
+    })
+}
+
 compileAndRunBtn.addEventListener("mousedown", (e)=>{
     versions.compileAndRun().then(()=>{
     })
 })
+
+export const compileRun = (e)=>{
+    versions.compileAndRun().then(()=>{
+    })
+}
 
 window.versions.openedFile((data) => {
     inputEl.value = data
