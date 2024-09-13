@@ -1,3 +1,3 @@
-module majorProject/mnm
+module majorProject/compiler
 
 go 1.22.5
