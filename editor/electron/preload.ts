@@ -21,13 +21,13 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 
   // You can expose other APTs you need here.
   // ...
-})
-
-
-contextBridge.exposeInMainWorld("versions", {
   saveFile: (fileContent: any) => ipcRenderer.invoke("saveFile", fileContent),
   openFile: () => ipcRenderer.invoke("openFile"),
   compileAndRun: () => ipcRenderer.invoke("compileAndRun"),
   openedFile: (callback: any) => ipcRenderer.on("openedFile", (_, fileContent) => callback(fileContent)),
   compiledAndRun: (callback: any) => ipcRenderer.on("compiledAndRun", (_, output) => callback(output))
+})
+
+
+contextBridge.exposeInMainWorld("versions", {
 })
