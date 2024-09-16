@@ -14,7 +14,8 @@ bash build.sh
 
 ## Usage
 ```
-compiler <path to program file> // Compiles your mnm code
+<path to build directory>compiler // for repl
+<path to build directory>compiler <path to program file> // Compiles your code
 ```
 
 # Tasks
