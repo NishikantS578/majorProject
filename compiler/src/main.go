@@ -25,10 +25,10 @@ func main() {
 			os.Exit(0)
 		}
 
-		ioDest, err = os.Create("app.asm")
+		ioDest, err = os.Create("app.obj")
 
 		if err != nil {
-			fmt.Println("Could not create file: app.asm")
+			fmt.Println("Could not create file: app.obj")
 			os.Exit(0)
 		}
 	}

@@ -8,17 +8,8 @@ lexer -> parser -> generator -> vm -> repl
 prog: { stmt }
 
 stmt: 
-    | 'exit' '(' expr ')' ';'
-    | 'let' ident '=' [term epxr] ';'
-
-expr: factor { ['+' '-'] factor }
-
-factor: term { ['*' '/'] term }
-
-term:
-    | '(' expr ')'
-    | int_lit
-    | ident
+    | 'exit' '(' expr ')'
+    | ident '=' [term epxr]
 
 ident: [a-z A-Z _] [a-z A-Z 0-9 _]*
 
