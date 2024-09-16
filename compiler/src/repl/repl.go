@@ -16,6 +16,7 @@ const PROMPT = ">> "
 func Run(ioSrc io.Reader, ioDest io.Writer) {
 
 	var scanner = bufio.NewScanner(ioSrc)
+	var exit_code = ""
 
 	for {
 		if ioDest == os.Stdout {
@@ -23,7 +24,7 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 		}
 
 		if !scanner.Scan() {
-			return
+			break
 		}
 
 		var line = scanner.Text()
@@ -48,7 +49,11 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 			continue
 		}
 
-		io.WriteString(ioDest, stackTop.Inspect())
-		io.WriteString(ioDest, "\n")
+		if ioDest == os.Stdout {
+			io.WriteString(ioDest, stackTop.Inspect())
+			io.WriteString(ioDest, "\n")
+		}
+		exit_code = stackTop.Inspect()
 	}
+	println(exit_code)
 }

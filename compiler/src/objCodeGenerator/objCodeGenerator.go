@@ -18,8 +18,9 @@ type Operator int
 const (
 	PLUS = iota
 	MINUS
-	ASTERISK
-	SLASH
+	MULTIPLICATION
+	DIVISION
+	ASSIGNMENT
 )
 
 type IntegerLiteralNode struct {
@@ -33,10 +34,18 @@ func (i *IntegerLiteralNode) expressionNode() {
 func (i *IntegerLiteralNode) statementNode() {
 }
 
+type IdentifierNode struct {
+	Value string
+}
+
+func (i *IdentifierNode) literalString()  {}
+func (i *IdentifierNode) expressionNode() {}
+func (i *IdentifierNode) statementNode()  {}
+
 type InfixExpressionNode struct {
 	Op    Operator
-	Left  *ExpressionNode
-	Right *ExpressionNode
+	Left  ExpressionNode
+	Right ExpressionNode
 }
 
 func (i *InfixExpressionNode) literalString() {
@@ -81,11 +90,19 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 			objCodeGenerator.Generate(s)
 		}
 	case *InfixExpressionNode:
-		objCodeGenerator.Generate(*node.Left)
-		objCodeGenerator.Generate(*node.Right)
+		objCodeGenerator.Generate(node.Left)
+		objCodeGenerator.Generate(node.Right)
 		switch node.Op {
 		case PLUS:
 			objCodeGenerator.emit(vm.OpAddition)
+		case MINUS:
+			objCodeGenerator.emit(vm.OpSubtraction)
+		case MULTIPLICATION:
+			objCodeGenerator.emit(vm.OpMultiplication)
+		case DIVISION:
+			objCodeGenerator.emit(vm.OpDivision)
+		default:
+			println("unknown operator", node.Op)
 		}
 	case *IntegerLiteralNode:
 		var integer = &vm.Integer{Value: node.Value}

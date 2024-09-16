@@ -1,6 +1,2 @@
-let x = 9;
-let a = 2;
-let b = 17;
-let c = 11;
-let y = ((5 - 2) + x) * a - b / c - 6;
-exit(y);
+a = 5
+1 + 2 + 3 - 5 -1 + 6 * a

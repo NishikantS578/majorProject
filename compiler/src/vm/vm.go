@@ -81,11 +81,23 @@ var Definitions = map[OpCode]*Definition{
 	OpAddition: {
 		Name: "OpAddition",
 	},
+	OpSubtraction: {
+		Name: "OpSubtraction",
+	},
+	OpMultiplication: {
+		Name: "OpMultiplication",
+	},
+	OpDivision: {
+		Name: "OpDivision",
+	},
 }
 
 const (
 	OpConstant OpCode = iota
 	OpAddition
+	OpSubtraction
+	OpMultiplication
+	OpDivision
 )
 
 func New(ins Instructions, constPool []Data) Vm {
@@ -124,6 +136,50 @@ func (vm *Vm) Execute() {
 			rightValue := n1.(*Integer).Value
 			leftValue := n2.(*Integer).Value
 			vm.push(&Integer{Value: leftValue + rightValue})
+		case OpSubtraction:
+			n1, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			n2, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			rightValue := n1.(*Integer).Value
+			leftValue := n2.(*Integer).Value
+			vm.push(&Integer{Value: leftValue - rightValue})
+		case OpMultiplication:
+			n1, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			n2, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			rightValue := n1.(*Integer).Value
+			leftValue := n2.(*Integer).Value
+			vm.push(&Integer{Value: leftValue * rightValue})
+		case OpDivision:
+			n1, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			n2, err := vm.pop()
+			if err != nil {
+				println("err")
+				return
+			}
+			rightValue := n1.(*Integer).Value
+			leftValue := n2.(*Integer).Value
+			vm.push(&Integer{Value: leftValue / rightValue})
+		default:
+			println("unkown instruction", op)
 		}
 		ip++
 	}
