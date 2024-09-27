@@ -12,6 +12,7 @@ type TokenType string
 
 const (
 	LOWEST = iota
+	COMPARISON
 	ASSIGNMENT
 	SUM
 	MULTIPLICATION
@@ -21,6 +22,8 @@ const (
 	INTEGER_LITERAL     = "INT"
 	STRING_LITERAL      = "STRING"
 	IDENTIFIER          = "IDENT"
+	KEYWORD_TRUE        = "KEYWORD true"
+	KEYWORD_FALSE       = "KEYWORD false"
 	ASSIGNMENT_OPERATOR = "="
 	PLUS                = "+"
 	MINUS               = "-"
@@ -28,12 +31,18 @@ const (
 	SLASH               = "/"
 	OPENING_PARENTHESIS = "("
 	CLOSING_PARENTHESIS = ")"
+	EQUAL_TO            = "=="
+	NOT_EQUAL_TO        = "!="
+	GREATER_THAN        = ">"
 	RETURN              = "RETURN"
 )
 
 var precedences = map[TokenType]int{
 	IDENTIFIER:          LOWEST,
 	ASSIGNMENT_OPERATOR: ASSIGNMENT,
+	EQUAL_TO:            COMPARISON,
+	NOT_EQUAL_TO:        COMPARISON,
+	GREATER_THAN:        COMPARISON,
 	INTEGER_LITERAL:     LOWEST,
 	PLUS:                SUM,
 	MINUS:               SUM,
@@ -76,9 +85,14 @@ func New(tokenArr []Token) Parser {
 	p.infix_parse_fns[ASTERISK] = p.parse_infix_expression
 	p.infix_parse_fns[SLASH] = p.parse_infix_expression
 	p.infix_parse_fns[ASSIGNMENT_OPERATOR] = p.parse_infix_expression
+	p.infix_parse_fns[EQUAL_TO] = p.parse_infix_expression
+	p.infix_parse_fns[NOT_EQUAL_TO] = p.parse_infix_expression
+	p.infix_parse_fns[GREATER_THAN] = p.parse_infix_expression
 
 	p.prefix_parse_fns = make(map[TokenType]prefix_parse_fn)
 	p.prefix_parse_fns[INTEGER_LITERAL] = p.parse_int_literal
+	p.prefix_parse_fns[KEYWORD_TRUE] = p.parse_bool_keyword
+	p.prefix_parse_fns[KEYWORD_FALSE] = p.parse_bool_keyword
 	p.prefix_parse_fns[OPENING_PARENTHESIS] = p.parse_grouped_expr
 	p.prefix_parse_fns[IDENTIFIER] = p.parse_identifier
 
@@ -156,7 +170,10 @@ func (parser *Parser) parseExpression(precedence int) (objCodeGenerator.Expressi
 	for (current_token.TypeOfToken == PLUS ||
 		current_token.TypeOfToken == MINUS ||
 		current_token.TypeOfToken == ASTERISK ||
-		current_token.TypeOfToken == SLASH) &&
+		current_token.TypeOfToken == SLASH ||
+		current_token.TypeOfToken == EQUAL_TO ||
+		current_token.TypeOfToken == NOT_EQUAL_TO ||
+		current_token.TypeOfToken == GREATER_THAN) &&
 		precedences[current_token.TypeOfToken] > precedence &&
 		*parser.cursorPos < len(parser.tokenArr) {
 
@@ -216,6 +233,19 @@ func (parser *Parser) parse_int_literal() (objCodeGenerator.ExpressionNode, erro
 	return &exp_node, nil
 }
 
+func (parser *Parser) parse_bool_keyword() (objCodeGenerator.ExpressionNode, error) {
+	var exp_node = objCodeGenerator.KeywordBooleanNode{}
+	var current_token = parser.peek()
+
+	if current_token.TypeOfToken == KEYWORD_TRUE {
+		exp_node.Value = true
+	} else if current_token.TypeOfToken == KEYWORD_FALSE {
+		exp_node.Value = false
+	}
+	parser.readToken()
+	return &exp_node, nil
+}
+
 func (parser *Parser) parse_infix_expression(ast objCodeGenerator.ExpressionNode) (objCodeGenerator.ExpressionNode, error) {
 	var exp_node = objCodeGenerator.InfixExpressionNode{}
 	var current_token = parser.peek()
@@ -232,6 +262,12 @@ func (parser *Parser) parse_infix_expression(ast objCodeGenerator.ExpressionNode
 		exp_node.Op = objCodeGenerator.DIVISION
 	} else if current_token.TypeOfToken == ASSIGNMENT_OPERATOR {
 		exp_node.Op = objCodeGenerator.ASSIGNMENT
+	} else if current_token.TypeOfToken == EQUAL_TO {
+		exp_node.Op = objCodeGenerator.EQUAL_TO
+	} else if current_token.TypeOfToken == NOT_EQUAL_TO {
+		exp_node.Op = objCodeGenerator.NOT_EQUAL_TO
+	} else if current_token.TypeOfToken == GREATER_THAN {
+		exp_node.Op = objCodeGenerator.GREATER_THAN
 	} else {
 		println("expected operator")
 	}

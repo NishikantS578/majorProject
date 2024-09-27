@@ -17,6 +17,7 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 
 	var scanner = bufio.NewScanner(ioSrc)
 	var exit_code = ""
+	var err error
 
 	for {
 		if ioDest == os.Stdout {
@@ -42,7 +43,10 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 			objCode.InstructionList,
 			objCode.ConstantPool,
 		)
-		machine.Execute()
+		err = machine.Execute()
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		var stackTop, err = machine.StackTop()
 		if err != nil {

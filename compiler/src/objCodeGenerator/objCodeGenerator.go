@@ -1,6 +1,7 @@
 package objCodeGenerator
 
 import (
+	"fmt"
 	"majorProject/compiler/vm"
 )
 
@@ -21,18 +22,26 @@ const (
 	MULTIPLICATION
 	DIVISION
 	ASSIGNMENT
+	EQUAL_TO
+	NOT_EQUAL_TO
+	GREATER_THAN
 )
 
 type IntegerLiteralNode struct {
 	Value int64
 }
 
-func (i *IntegerLiteralNode) literalString() {
+func (i *IntegerLiteralNode) literalString()  {}
+func (i *IntegerLiteralNode) expressionNode() {}
+func (i *IntegerLiteralNode) statementNode()  {}
+
+type KeywordBooleanNode struct {
+	Value bool
 }
-func (i *IntegerLiteralNode) expressionNode() {
-}
-func (i *IntegerLiteralNode) statementNode() {
-}
+
+func (b *KeywordBooleanNode) literalString()  {}
+func (b *KeywordBooleanNode) expressionNode() {}
+func (b *KeywordBooleanNode) statementNode()  {}
 
 type IdentifierNode struct {
 	Value string
@@ -48,19 +57,15 @@ type InfixExpressionNode struct {
 	Right ExpressionNode
 }
 
-func (i *InfixExpressionNode) literalString() {
-}
-func (i *InfixExpressionNode) expressionNode() {
-}
-func (i *InfixExpressionNode) statementNode() {
-}
+func (i *InfixExpressionNode) literalString()  {}
+func (i *InfixExpressionNode) expressionNode() {}
+func (i *InfixExpressionNode) statementNode()  {}
 
 type Program struct {
 	Statements []StatementNode
 }
 
-func (prog *Program) literalString() {
-}
+func (prog *Program) literalString() {}
 
 type StatementNode interface {
 	Node
@@ -101,13 +106,25 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 			objCodeGenerator.emit(vm.OpMultiplication)
 		case DIVISION:
 			objCodeGenerator.emit(vm.OpDivision)
+		case EQUAL_TO:
+			objCodeGenerator.emit(vm.OpEqual)
+		case NOT_EQUAL_TO:
+			objCodeGenerator.emit(vm.OpNotEqual)
+		case GREATER_THAN:
+			objCodeGenerator.emit(vm.OpGreaterThan)
 		default:
-			println("unknown operator", node.Op)
+			fmt.Println("unknown operator", node.Op)
 		}
 	case *IntegerLiteralNode:
 		var integer = &vm.Integer{Value: node.Value}
 		var addr = objCodeGenerator.addConstant(integer)
 		objCodeGenerator.emit(vm.OpConstant, addr)
+	case *KeywordBooleanNode:
+		if node.Value {
+			objCodeGenerator.emit(vm.OpTrue)
+		} else if !node.Value {
+			objCodeGenerator.emit(vm.OpFalse)
+		}
 	}
 }
 

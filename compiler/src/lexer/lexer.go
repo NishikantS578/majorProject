@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"majorProject/compiler/parser"
 	"unicode"
 	"unicode/utf8"
@@ -44,15 +45,40 @@ func (tokenizer *Tokenizer) Tokenize() {
 			tokenizer.buf = ""
 		} else if unicode.IsLetter(currentCh) || currentCh == '_' {
 			for unicode.IsLetter(currentCh) || currentCh == '_' || unicode.IsDigit(currentCh) {
-				currentCh, w = tokenizer.peek()
 				tokenizer.buf += string(currentCh)
 				tokenizer.readCh(w)
+				currentCh, w = tokenizer.peek()
 			}
-			tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IDENTIFIER, Literal: tokenizer.buf})
+
+			if tokenizer.buf == "true" {
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.KEYWORD_TRUE, Literal: tokenizer.buf})
+			} else if tokenizer.buf == "false" {
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.KEYWORD_FALSE, Literal: tokenizer.buf})
+			} else {
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IDENTIFIER, Literal: tokenizer.buf})
+			}
 			tokenizer.buf = ""
 		} else if currentCh == '=' {
 			tokenizer.readCh(w)
-			tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.ASSIGNMENT_OPERATOR, Literal: "="})
+			currentCh, w = tokenizer.peek()
+			if currentCh == '=' {
+				tokenizer.readCh(w)
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.EQUAL_TO, Literal: "=="})
+			} else {
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.ASSIGNMENT_OPERATOR, Literal: "="})
+			}
+		} else if currentCh == '!' {
+			tokenizer.readCh(w)
+			currentCh, w = tokenizer.peek()
+			if currentCh == '=' {
+				tokenizer.readCh(w)
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.NOT_EQUAL_TO, Literal: "!="})
+			} else {
+				fmt.Println("unexpected token !")
+			}
+		} else if currentCh == '>' {
+			tokenizer.readCh(w)
+			tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.GREATER_THAN, Literal: ">"})
 		} else if currentCh == '+' {
 			tokenizer.readCh(w)
 			tokenizer.TokenArr = append(tokenizer.TokenArr,
