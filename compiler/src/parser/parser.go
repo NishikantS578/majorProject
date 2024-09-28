@@ -16,6 +16,7 @@ const (
 	ASSIGNMENT
 	SUM
 	MULTIPLICATION
+	INVERSION
 )
 
 const (
@@ -33,6 +34,7 @@ const (
 	CLOSING_PARENTHESIS = ")"
 	EQUAL_TO            = "=="
 	NOT_EQUAL_TO        = "!="
+	BOOLEAN_INVERSION   = "!"
 	GREATER_THAN        = ">"
 	RETURN              = "RETURN"
 )
@@ -95,6 +97,8 @@ func New(tokenArr []Token) Parser {
 	p.prefix_parse_fns[KEYWORD_FALSE] = p.parse_bool_keyword
 	p.prefix_parse_fns[OPENING_PARENTHESIS] = p.parse_grouped_expr
 	p.prefix_parse_fns[IDENTIFIER] = p.parse_identifier
+	p.prefix_parse_fns[BOOLEAN_INVERSION] = p.parse_prefix_expression
+	p.prefix_parse_fns[MINUS] = p.parse_prefix_expression
 
 	return p
 }
@@ -244,6 +248,26 @@ func (parser *Parser) parse_bool_keyword() (objCodeGenerator.ExpressionNode, err
 	}
 	parser.readToken()
 	return &exp_node, nil
+}
+
+func (parser *Parser) parse_prefix_expression() (objCodeGenerator.ExpressionNode, error) {
+	var exp_node = objCodeGenerator.PrefixExpressionNode{}
+	var current_token = parser.peek()
+	var err error
+
+	parser.readToken()
+	switch current_token.TypeOfToken {
+	case MINUS:
+		exp_node.Op = objCodeGenerator.MINUS
+		exp_node.Child, err = parser.parseExpression(LOWEST)
+	case BOOLEAN_INVERSION:
+		exp_node.Op = objCodeGenerator.BOOLEAN_INVERSION
+		exp_node.Child, err = parser.parseExpression(LOWEST)
+	default:
+		return &exp_node, errors.New("syntax error")
+	}
+
+	return &exp_node, err
 }
 
 func (parser *Parser) parse_infix_expression(ast objCodeGenerator.ExpressionNode) (objCodeGenerator.ExpressionNode, error) {

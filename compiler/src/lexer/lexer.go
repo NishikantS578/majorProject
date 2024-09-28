@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"majorProject/compiler/parser"
 	"unicode"
 	"unicode/utf8"
@@ -74,7 +73,7 @@ func (tokenizer *Tokenizer) Tokenize() {
 				tokenizer.readCh(w)
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.NOT_EQUAL_TO, Literal: "!="})
 			} else {
-				fmt.Println("unexpected token !")
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.BOOLEAN_INVERSION, Literal: "!"})
 			}
 		} else if currentCh == '>' {
 			tokenizer.readCh(w)

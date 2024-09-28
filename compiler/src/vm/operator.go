@@ -24,6 +24,9 @@ var OperatorDefinitions = map[OpCode]*OperatorDefinition{
 	OpDivision: {
 		Name: "OpDivision",
 	},
+	OpNegation: {
+		Name: "OpNegation",
+	},
 	OpTrue: {
 		Name: "OpTrue",
 	},
@@ -38,6 +41,9 @@ var OperatorDefinitions = map[OpCode]*OperatorDefinition{
 	},
 	OpGreaterThan: {
 		Name: "OpGreaterThan",
+	},
+	OpBooleanInversion: {
+		Name: "OpBooleanInversion",
 	},
 }
 
@@ -77,9 +83,11 @@ const (
 	OpSubtraction
 	OpMultiplication
 	OpDivision
+	OpNegation
 	OpTrue
 	OpFalse
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+	OpBooleanInversion
 )

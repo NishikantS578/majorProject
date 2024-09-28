@@ -96,6 +96,14 @@ func (vm *Vm) Execute() error {
 			rightValue := n1.(*Integer).Value
 			leftValue := n2.(*Integer).Value
 			vm.push(&Integer{Value: leftValue / rightValue})
+		case OpNegation:
+			var n Data
+			var err error
+			n, err = vm.pop()
+			if err != nil {
+				return err
+			}
+			vm.push(&Integer{Value: -n.(*Integer).Value})
 		case OpTrue:
 			var err error
 			err = vm.push(True)
@@ -170,6 +178,19 @@ func (vm *Vm) Execute() error {
 				if err != nil {
 					return err
 				}
+			}
+		case OpBooleanInversion:
+			var d Data
+			var err error
+			d, err = vm.pop()
+			if err != nil {
+				return err
+			}
+			switch d.(*Boolean).Value {
+			case false:
+				vm.push(True)
+			default:
+				vm.push(False)
 			}
 		default:
 			fmt.Println("unkown instruction", op)

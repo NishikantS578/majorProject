@@ -24,6 +24,7 @@ const (
 	ASSIGNMENT
 	EQUAL_TO
 	NOT_EQUAL_TO
+	BOOLEAN_INVERSION
 	GREATER_THAN
 )
 
@@ -50,6 +51,15 @@ type IdentifierNode struct {
 func (i *IdentifierNode) literalString()  {}
 func (i *IdentifierNode) expressionNode() {}
 func (i *IdentifierNode) statementNode()  {}
+
+type PrefixExpressionNode struct {
+	Op    Operator
+	Child ExpressionNode
+}
+
+func (p *PrefixExpressionNode) literalString()  {}
+func (p *PrefixExpressionNode) expressionNode() {}
+func (p *PrefixExpressionNode) statementNode()  {}
 
 type InfixExpressionNode struct {
 	Op    Operator
@@ -114,6 +124,16 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 			objCodeGenerator.emit(vm.OpGreaterThan)
 		default:
 			fmt.Println("unknown operator", node.Op)
+		}
+	case *PrefixExpressionNode:
+		objCodeGenerator.Generate(node.Child)
+		switch node.Op {
+		case MINUS:
+			objCodeGenerator.emit(vm.OpNegation)
+		case BOOLEAN_INVERSION:
+			objCodeGenerator.emit(vm.OpBooleanInversion)
+		default:
+			fmt.Println("expected prefix operator")
 		}
 	case *IntegerLiteralNode:
 		var integer = &vm.Integer{Value: node.Value}
