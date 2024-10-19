@@ -9,10 +9,28 @@ type Node interface {
 	literalString()
 }
 
+type StatementNode interface {
+	Node
+	statementNode()
+}
+
 type ExpressionNode interface {
 	StatementNode
 	expressionNode()
 }
+
+type StatementBlockNode struct {
+	Statements []StatementNode
+}
+
+type IfStmtNode struct {
+	Condition   ExpressionNode
+	Consequence StatementBlockNode
+	Alternative StatementBlockNode
+}
+
+func (i *IfStmtNode) statementNode() {}
+func (i *IfStmtNode) literalString() {}
 
 type Operator int
 
@@ -71,16 +89,7 @@ func (i *InfixExpressionNode) literalString()  {}
 func (i *InfixExpressionNode) expressionNode() {}
 func (i *InfixExpressionNode) statementNode()  {}
 
-type Program struct {
-	Statements []StatementNode
-}
-
-func (prog *Program) literalString() {}
-
-type StatementNode interface {
-	Node
-	statementNode()
-}
+func (prog *StatementBlockNode) literalString() {}
 
 type ObjCodeGenerator struct {
 	InstructionList vm.Instructions
@@ -100,7 +109,7 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 		return
 	}
 	switch node := (node).(type) {
-	case *Program:
+	case *StatementBlockNode:
 		for _, s := range node.Statements {
 			objCodeGenerator.Generate(s)
 		}
@@ -145,6 +154,24 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 		} else if !node.Value {
 			objCodeGenerator.emit(vm.OpFalse)
 		}
+	case *IfStmtNode:
+		objCodeGenerator.Generate(node.Condition)
+		var jump_not_truthy_pos = len(objCodeGenerator.InstructionList)
+		objCodeGenerator.emit(vm.OpJumpNotTruthy, 9999)
+
+		objCodeGenerator.Generate(&node.Consequence)
+
+		var jump_pos = len(objCodeGenerator.InstructionList)
+		objCodeGenerator.emit(vm.OpJump, 9999)
+
+		var after_consequence_pos = len(objCodeGenerator.InstructionList)
+
+		objCodeGenerator.changeOperand(jump_not_truthy_pos, after_consequence_pos)
+
+		objCodeGenerator.Generate(&node.Alternative)
+		var after_alternative_pos = len(objCodeGenerator.InstructionList)
+
+		objCodeGenerator.changeOperand(jump_pos, after_alternative_pos)
 	}
 }
 
@@ -168,4 +195,16 @@ func (objCodeGenerator *ObjCodeGenerator) addConstant(
 	)
 
 	return len(objCodeGenerator.ConstantPool) - 1
+}
+
+func (objCodeGenerator *ObjCodeGenerator) replaceInstruction(pos int, new_instruction []byte) {
+	for i := 0; i < len(new_instruction); i++ {
+		objCodeGenerator.InstructionList[pos+i] = new_instruction[i]
+	}
+}
+
+func (objCodeGenerator *ObjCodeGenerator) changeOperand(opPos int, operand int) {
+	var op = vm.OpCode(objCodeGenerator.InstructionList[opPos])
+	var new_instruction = vm.MakeInstruction(op, operand)
+	objCodeGenerator.replaceInstruction(opPos, new_instruction)
 }

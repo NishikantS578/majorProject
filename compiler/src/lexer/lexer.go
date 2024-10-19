@@ -53,6 +53,10 @@ func (tokenizer *Tokenizer) Tokenize() {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.KEYWORD_TRUE, Literal: tokenizer.buf})
 			} else if tokenizer.buf == "false" {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.KEYWORD_FALSE, Literal: tokenizer.buf})
+			} else if tokenizer.buf == "if" {
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IF, Literal: tokenizer.buf})
+			} else if tokenizer.buf == "else"{
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.ELSE, Literal: tokenizer.buf})
 			} else {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IDENTIFIER, Literal: tokenizer.buf})
 			}
@@ -126,6 +130,12 @@ func (tokenizer *Tokenizer) Tokenize() {
 					Literal:     ")",
 				},
 			)
+		} else if currentCh == '{' {
+			tokenizer.readCh(w)
+			tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.OPENING_CURLY, Literal: "{"})
+		} else if currentCh == '}' {
+			tokenizer.readCh(w)
+			tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.CLOSING_CURLY, Literal: "}"})
 		} else if currentCh == '\r' || currentCh == '\n' || currentCh == ' ' {
 			tokenizer.readCh(w)
 		} else {

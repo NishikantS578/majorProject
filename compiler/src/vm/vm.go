@@ -192,6 +192,20 @@ func (vm *Vm) Execute() error {
 			default:
 				vm.push(False)
 			}
+		case OpJumpNotTruthy:
+			ip++
+			var condition_value, err = vm.pop()
+			if err != nil{
+				return err
+			}
+			if condition_value.(*Boolean).Value == False.Value{
+				ip = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2])) - 1
+			} else{
+				ip++
+			}
+		case OpJump:
+			ip++
+			ip = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2])) - 1
 		default:
 			fmt.Println("unkown instruction", op)
 		}
@@ -217,7 +231,7 @@ func (vm *Vm) pop() (Data, error) {
 
 func (vm *Vm) push(data Data) error {
 	if vm.sp == StackSize {
-		return errors.New("Stack Overflow")
+		return errors.New("stack overflow")
 	}
 	vm.stack[vm.sp] = data
 	vm.sp += 1

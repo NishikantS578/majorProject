@@ -45,6 +45,14 @@ var OperatorDefinitions = map[OpCode]*OperatorDefinition{
 	OpBooleanInversion: {
 		Name: "OpBooleanInversion",
 	},
+	OpJumpNotTruthy: {
+		Name:          "OpJumpNotTruthy",
+		OperandWidths: []int{2},
+	},
+	OpJump: {
+		Name:          "OpJump",
+		OperandWidths: []int{2},
+	},
 }
 
 func MakeInstruction(op OpCode, operands ...int) []byte {
@@ -90,4 +98,6 @@ const (
 	OpNotEqual
 	OpGreaterThan
 	OpBooleanInversion
+	OpJumpNotTruthy
+	OpJump
 )

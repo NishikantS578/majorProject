@@ -32,7 +32,7 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 		var progLexer = lexer.New(line)
 		progLexer.Tokenize()
 		var progParser = parser.New(progLexer.TokenArr)
-		if progParser.Parse_program() == 0 {
+		if progParser.ParseProgram() == 0 {
 			continue
 		}
 

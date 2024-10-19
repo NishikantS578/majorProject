@@ -32,10 +32,14 @@ const (
 	SLASH               = "/"
 	OPENING_PARENTHESIS = "("
 	CLOSING_PARENTHESIS = ")"
+	OPENING_CURLY       = "{"
+	CLOSING_CURLY       = "}"
 	EQUAL_TO            = "=="
 	NOT_EQUAL_TO        = "!="
 	BOOLEAN_INVERSION   = "!"
 	GREATER_THAN        = ">"
+	IF                  = "if"
+	ELSE                = "else"
 	RETURN              = "RETURN"
 )
 
@@ -65,7 +69,7 @@ type Token struct {
 }
 
 type Parser struct {
-	Ast       objCodeGenerator.Program
+	Ast       objCodeGenerator.StatementBlockNode
 	tokenArr  []Token
 	cursorPos *int
 
@@ -76,7 +80,7 @@ type Parser struct {
 func New(tokenArr []Token) Parser {
 	var a int = 0
 	var p = Parser{
-		Ast:       objCodeGenerator.Program{},
+		Ast:       objCodeGenerator.StatementBlockNode{},
 		tokenArr:  tokenArr,
 		cursorPos: &a,
 	}
@@ -103,7 +107,7 @@ func New(tokenArr []Token) Parser {
 	return p
 }
 
-func (parser *Parser) Parse_program() int {
+func (parser *Parser) ParseProgram() int {
 	var currentToken Token = parser.peek()
 	var stmt_node objCodeGenerator.StatementNode
 	var err error
@@ -113,12 +117,33 @@ func (parser *Parser) Parse_program() int {
 		if err != nil {
 			return 0
 		}
+
 		parser.Ast.Statements = append(
 			parser.Ast.Statements,
 			stmt_node)
 		currentToken = parser.peek()
 	}
 	return 1
+}
+
+func (parser *Parser) parse_stmt_block_node() (objCodeGenerator.StatementBlockNode, error) {
+	var currentToken Token = parser.peek()
+	var stmt_node objCodeGenerator.StatementNode
+	var stmt_block_node objCodeGenerator.StatementBlockNode
+	var err error
+
+	for currentToken.TypeOfToken != CLOSING_CURLY {
+		stmt_node, err = parser.parseStatement()
+		if err != nil {
+			return stmt_block_node, err
+		}
+
+		stmt_block_node.Statements = append(
+			stmt_block_node.Statements,
+			stmt_node)
+		currentToken = parser.peek()
+	}
+	return stmt_block_node, err
 }
 
 func (parser *Parser) peek() Token {
@@ -140,6 +165,11 @@ func (parser *Parser) parseStatement() (objCodeGenerator.StatementNode, error) {
 
 	switch currentToken.TypeOfToken {
 	case RETURN:
+	case IF:
+		stmt_node, err = parser.parse_if_statement()
+		if err != nil {
+			return stmt_node, err
+		}
 	default:
 		stmt_node, err = parser.parseExpression(LOWEST)
 		if err != nil {
@@ -168,8 +198,8 @@ func (parser *Parser) parseExpression(precedence int) (objCodeGenerator.Expressi
 	}
 	current_token = parser.peek()
 
-	if current_token.TypeOfToken == ASSIGNMENT_OPERATOR {
-	}
+	// if current_token.TypeOfToken == ASSIGNMENT_OPERATOR {
+	// }
 
 	for (current_token.TypeOfToken == PLUS ||
 		current_token.TypeOfToken == MINUS ||
@@ -248,6 +278,76 @@ func (parser *Parser) parse_bool_keyword() (objCodeGenerator.ExpressionNode, err
 	}
 	parser.readToken()
 	return &exp_node, nil
+}
+
+func (parser *Parser) parse_if_statement() (*objCodeGenerator.IfStmtNode, error) {
+	var ifstmt_node = objCodeGenerator.IfStmtNode{}
+	var err error
+	parser.readToken()
+
+	var current_token = parser.peek()
+	if current_token.TypeOfToken != OPENING_PARENTHESIS {
+		return &ifstmt_node, errors.New("expected (")
+	}
+	parser.readToken()
+
+	var exp_node objCodeGenerator.ExpressionNode
+	exp_node, err = parser.parseExpression(0)
+	if err != nil {
+		return &ifstmt_node, err
+	}
+	current_token = parser.peek()
+	if current_token.TypeOfToken != CLOSING_PARENTHESIS {
+		return &ifstmt_node, errors.New("expected )")
+	}
+	parser.readToken()
+	current_token = parser.peek()
+	if current_token.TypeOfToken != OPENING_CURLY {
+		return &ifstmt_node, errors.New("expected {")
+	}
+	parser.readToken()
+
+	var stmt_block_node objCodeGenerator.StatementBlockNode
+	stmt_block_node, err = parser.parse_stmt_block_node()
+	if err != nil {
+		return &ifstmt_node, err
+	}
+
+	current_token = parser.peek()
+	if current_token.TypeOfToken != CLOSING_CURLY {
+		return &ifstmt_node, errors.New("expected }")
+	}
+	parser.readToken()
+
+	ifstmt_node.Condition = exp_node
+	ifstmt_node.Consequence = stmt_block_node
+
+	current_token = parser.peek()
+	if current_token.TypeOfToken != ELSE {
+		return &ifstmt_node, err
+	}
+
+	parser.readToken()
+	current_token = parser.peek()
+	if current_token.TypeOfToken != OPENING_CURLY{
+		return &ifstmt_node, errors.New("expected {")
+	}
+
+	parser.readToken()
+	stmt_block_node, err = parser.parse_stmt_block_node()
+	if err != nil{
+		return &ifstmt_node, errors.New("error while parsing statement block")
+	}
+
+	current_token = parser.peek()
+	if current_token.TypeOfToken != CLOSING_CURLY{
+		return &ifstmt_node, errors.New("expected }")
+	}
+
+	parser.readToken()
+
+	ifstmt_node.Alternative = stmt_block_node
+	return &ifstmt_node, err
 }
 
 func (parser *Parser) parse_prefix_expression() (objCodeGenerator.ExpressionNode, error) {
