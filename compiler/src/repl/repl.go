@@ -19,6 +19,15 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 	var exit_code = ""
 	var err error
 
+	var progLexer = lexer.New("")
+	var progParser = parser.New(progLexer.TokenArr)
+	var objCode = objCodeGenerator.New(&progParser.Ast)
+	var machine = vm.New(
+		objCode.InstructionList,
+		objCode.ConstantPool,
+		objCode.SymbolTable,
+	)
+
 	for {
 		if ioDest == os.Stdout {
 			fmt.Fprint(ioDest, PROMPT)
@@ -29,20 +38,18 @@ func Run(ioSrc io.Reader, ioDest io.Writer) {
 		}
 
 		var line = scanner.Text()
-		var progLexer = lexer.New(line)
+		progLexer.SetNewInput(line)
 		progLexer.Tokenize()
-		var progParser = parser.New(progLexer.TokenArr)
+
+		progParser.SetNewInput(progLexer.TokenArr)
 		if progParser.ParseProgram() == 0 {
 			continue
 		}
 
-		var objCode = objCodeGenerator.New(&progParser.Ast)
+		objCode.SetNewInput(&progParser.Ast)
 		objCode.Generate(&progParser.Ast)
 
-		var machine = vm.New(
-			objCode.InstructionList,
-			objCode.ConstantPool,
-		)
+		machine.SetNewInput(objCode.InstructionList)
 		err = machine.Execute()
 		if err != nil {
 			fmt.Println(err)

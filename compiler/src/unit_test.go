@@ -23,6 +23,7 @@ func execute(input_string string) (string, error) {
 	var machine = vm.New(
 		objCode.InstructionList,
 		objCode.ConstantPool,
+		objCode.SymbolTable,
 	)
 	err = machine.Execute()
 	if err != nil {
@@ -42,12 +43,16 @@ func TestCompiler(t *testing.T) {
 	var err error
 	var output_actual string
 	var outputs_expected = map[string]string{
-		"1+2": "3",
-		"4-5": "-1",
-		"if(true){4+1}": "5",
-		"if(4==4){3*3}": "9",
+		"1+2":                    "3",
+		"4-5":                    "-1",
+		"if(true){4+1}":          "5",
+		"if(4==4){3*3}":          "9",
 		"if(4==3){1+1}else{9*2}": "18",
 		"if(4==4){1+1}else{9*2}": "2",
+		"let one = 2\none": "2",
+		"let two = 2\ntwo+5": "7",
+		"let one = 1\nlet two=2\nlet three=3\nlet four=4\nlet five = one/(two-three)+four\nfive": "3",
+		"let one = 1\none=8\nlet two=2\nlet three=3\nlet four=4\nlet five = one/(two-three)+four\nfive": "-4",
 	}
 
 	for input_string, output_expected := range outputs_expected {

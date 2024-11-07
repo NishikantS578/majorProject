@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"majorProject/compiler/objCodeGenerator"
-	"os"
 	"strconv"
 )
 
@@ -41,6 +40,7 @@ const (
 	IF                  = "if"
 	ELSE                = "else"
 	RETURN              = "RETURN"
+	LET = "LET KEYWORD"
 )
 
 var precedences = map[TokenType]int{
@@ -77,7 +77,13 @@ type Parser struct {
 	prefix_parse_fns map[TokenType]prefix_parse_fn
 }
 
-func New(tokenArr []Token) Parser {
+func (parser *Parser)SetNewInput(tokenArr []Token){
+	parser.Ast = objCodeGenerator.StatementBlockNode{}
+	parser.tokenArr = tokenArr
+	*parser.cursorPos = 0
+}
+
+func New(tokenArr []Token) *Parser {
 	var a int = 0
 	var p = Parser{
 		Ast:       objCodeGenerator.StatementBlockNode{},
@@ -90,7 +96,6 @@ func New(tokenArr []Token) Parser {
 	p.infix_parse_fns[MINUS] = p.parse_infix_expression
 	p.infix_parse_fns[ASTERISK] = p.parse_infix_expression
 	p.infix_parse_fns[SLASH] = p.parse_infix_expression
-	p.infix_parse_fns[ASSIGNMENT_OPERATOR] = p.parse_infix_expression
 	p.infix_parse_fns[EQUAL_TO] = p.parse_infix_expression
 	p.infix_parse_fns[NOT_EQUAL_TO] = p.parse_infix_expression
 	p.infix_parse_fns[GREATER_THAN] = p.parse_infix_expression
@@ -104,7 +109,7 @@ func New(tokenArr []Token) Parser {
 	p.prefix_parse_fns[BOOLEAN_INVERSION] = p.parse_prefix_expression
 	p.prefix_parse_fns[MINUS] = p.parse_prefix_expression
 
-	return p
+	return &p
 }
 
 func (parser *Parser) ParseProgram() int {
@@ -124,6 +129,22 @@ func (parser *Parser) ParseProgram() int {
 		currentToken = parser.peek()
 	}
 	return 1
+}
+
+func (parser *Parser) peek(args ...int) Token {
+	var offset = 0
+	if len(args) > 0{
+		offset = args[0]
+	}
+	var token Token
+	if len(parser.tokenArr) > *parser.cursorPos+offset {
+		token = parser.tokenArr[*parser.cursorPos+offset]
+	}
+	return token
+}
+
+func (parser *Parser) readToken() {
+	*parser.cursorPos += 1
 }
 
 func (parser *Parser) parse_stmt_block_node() (objCodeGenerator.StatementBlockNode, error) {
@@ -146,18 +167,6 @@ func (parser *Parser) parse_stmt_block_node() (objCodeGenerator.StatementBlockNo
 	return stmt_block_node, err
 }
 
-func (parser *Parser) peek() Token {
-	var token Token
-	if len(parser.tokenArr) > *parser.cursorPos {
-		token = parser.tokenArr[*parser.cursorPos]
-	}
-	return token
-}
-
-func (parser *Parser) readToken() {
-	*parser.cursorPos += 1
-}
-
 func (parser *Parser) parseStatement() (objCodeGenerator.StatementNode, error) {
 	var stmt_node objCodeGenerator.StatementNode
 	var currentToken Token = parser.peek()
@@ -170,8 +179,14 @@ func (parser *Parser) parseStatement() (objCodeGenerator.StatementNode, error) {
 		if err != nil {
 			return stmt_node, err
 		}
+	case LET:
+		stmt_node, err = parser.parse_let_statement()
 	default:
-		stmt_node, err = parser.parseExpression(LOWEST)
+		if parser.peek(1).TypeOfToken == ASSIGNMENT_OPERATOR{
+			stmt_node, err = parser.parse_assignment_statement()
+		} else{
+			stmt_node, err = parser.parseExpression(LOWEST)
+		}
 		if err != nil {
 			return stmt_node, err
 		}
@@ -189,7 +204,6 @@ func (parser *Parser) parseExpression(precedence int) (objCodeGenerator.Expressi
 
 	if prefix == nil {
 		fmt.Println("no prefix function found for", current_token.TypeOfToken)
-		os.Exit(0)
 		return expr, nil
 	}
 	expr, err = prefix()
@@ -280,6 +294,61 @@ func (parser *Parser) parse_bool_keyword() (objCodeGenerator.ExpressionNode, err
 	return &exp_node, nil
 }
 
+func (parser *Parser) parse_let_statement() (*objCodeGenerator.LetStmtNode, error){
+	var let_stmt_node = &objCodeGenerator.LetStmtNode{}
+	var current_token = parser.peek()
+	var err error
+
+	if current_token.TypeOfToken != LET{
+		return let_stmt_node, errors.New("expected let keyword")
+	}
+	parser.readToken()
+	current_token = parser.peek()
+
+	let_stmt_node.Identifier = objCodeGenerator.IdentifierNode{}
+	let_stmt_node.Identifier.Value = current_token.Literal
+	parser.readToken()
+	current_token = parser.peek()
+
+	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR{
+		return let_stmt_node, nil
+	}
+	parser.readToken()
+
+	let_stmt_node.InitializationExpr, err = parser.parseExpression(LOWEST)
+	
+	if err != nil{
+		return let_stmt_node, err
+	}
+
+	return let_stmt_node, nil
+}
+
+func (parser *Parser) parse_assignment_statement() (*objCodeGenerator.AssignementStmt, error){
+	var assignment_stmt_node = &objCodeGenerator.AssignementStmt{}
+	var current_token = parser.peek()
+	var err error
+
+	assignment_stmt_node.Identifier = objCodeGenerator.IdentifierNode{}
+	assignment_stmt_node.Identifier.Value = current_token.Literal
+	parser.readToken()
+	current_token = parser.peek()
+
+	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR{
+		return assignment_stmt_node, nil
+	}
+	parser.readToken()
+
+	assignment_stmt_node.InitializationExpr, err = parser.parseExpression(LOWEST)
+	
+	if err != nil{
+		return assignment_stmt_node, err
+	}
+
+	return assignment_stmt_node, nil
+}
+
+
 func (parser *Parser) parse_if_statement() (*objCodeGenerator.IfStmtNode, error) {
 	var ifstmt_node = objCodeGenerator.IfStmtNode{}
 	var err error
@@ -329,18 +398,18 @@ func (parser *Parser) parse_if_statement() (*objCodeGenerator.IfStmtNode, error)
 
 	parser.readToken()
 	current_token = parser.peek()
-	if current_token.TypeOfToken != OPENING_CURLY{
+	if current_token.TypeOfToken != OPENING_CURLY {
 		return &ifstmt_node, errors.New("expected {")
 	}
 
 	parser.readToken()
 	stmt_block_node, err = parser.parse_stmt_block_node()
-	if err != nil{
+	if err != nil {
 		return &ifstmt_node, errors.New("error while parsing statement block")
 	}
 
 	current_token = parser.peek()
-	if current_token.TypeOfToken != CLOSING_CURLY{
+	if current_token.TypeOfToken != CLOSING_CURLY {
 		return &ifstmt_node, errors.New("expected }")
 	}
 

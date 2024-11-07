@@ -22,6 +22,13 @@ func New(line string) Tokenizer {
 	}
 }
 
+func (tokenizer *Tokenizer) SetNewInput(src string){
+	tokenizer.src = src
+	tokenizer.cursorPos = 0
+	tokenizer.buf = ""
+	tokenizer.TokenArr = []parser.Token{}
+}
+
 func (tokenizer *Tokenizer) Tokenize() {
 	var currentCh, w = tokenizer.peek()
 
@@ -55,8 +62,10 @@ func (tokenizer *Tokenizer) Tokenize() {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.KEYWORD_FALSE, Literal: tokenizer.buf})
 			} else if tokenizer.buf == "if" {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IF, Literal: tokenizer.buf})
-			} else if tokenizer.buf == "else"{
+			} else if tokenizer.buf == "else" {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.ELSE, Literal: tokenizer.buf})
+			} else if tokenizer.buf == "let"{
+				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.LET})
 			} else {
 				tokenizer.TokenArr = append(tokenizer.TokenArr, parser.Token{TypeOfToken: parser.IDENTIFIER, Literal: tokenizer.buf})
 			}

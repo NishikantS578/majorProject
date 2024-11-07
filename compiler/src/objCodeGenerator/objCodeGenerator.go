@@ -1,8 +1,23 @@
 package objCodeGenerator
 
 import (
+	"errors"
 	"fmt"
 	"majorProject/compiler/vm"
+)
+
+type Operator int
+
+const (
+	PLUS = iota
+	MINUS
+	MULTIPLICATION
+	DIVISION
+	ASSIGNMENT
+	EQUAL_TO
+	NOT_EQUAL_TO
+	BOOLEAN_INVERSION
+	GREATER_THAN
 )
 
 type Node interface {
@@ -32,19 +47,21 @@ type IfStmtNode struct {
 func (i *IfStmtNode) statementNode() {}
 func (i *IfStmtNode) literalString() {}
 
-type Operator int
+type LetStmtNode struct{
+	Identifier IdentifierNode
+	InitializationExpr ExpressionNode
+}
 
-const (
-	PLUS = iota
-	MINUS
-	MULTIPLICATION
-	DIVISION
-	ASSIGNMENT
-	EQUAL_TO
-	NOT_EQUAL_TO
-	BOOLEAN_INVERSION
-	GREATER_THAN
-)
+func (l *LetStmtNode) statementNode(){}
+func (l *LetStmtNode) literalString(){}
+
+type AssignementStmt struct{
+	Identifier IdentifierNode
+	InitializationExpr ExpressionNode
+}
+
+func (l *AssignementStmt) statementNode(){}
+func (l *AssignementStmt) literalString(){}
 
 type IntegerLiteralNode struct {
 	Value int64
@@ -94,19 +111,27 @@ func (prog *StatementBlockNode) literalString() {}
 type ObjCodeGenerator struct {
 	InstructionList vm.Instructions
 	ast             Node
-	ConstantPool    []vm.Data
+	ConstantPool    *[]vm.Data
+	SymbolTable *vm.SymbolTable
 }
 
-func New(progAst Node) ObjCodeGenerator {
-	return ObjCodeGenerator{
+func (objCodeGenerator *ObjCodeGenerator)SetNewInput(ast Node){
+	objCodeGenerator.InstructionList = vm.Instructions([]byte{})
+	objCodeGenerator.ast = ast
+}
+
+func New(progAst Node) *ObjCodeGenerator {
+	return &ObjCodeGenerator{
 		InstructionList: vm.Instructions([]byte{}),
 		ast:             progAst,
+		SymbolTable: vm.NewSymbolTable(),
+		ConstantPool: &[]vm.Data{},
 	}
 }
 
-func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
+func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) error {
 	if node == nil {
-		return
+		return nil
 	}
 	switch node := (node).(type) {
 	case *StatementBlockNode:
@@ -172,7 +197,40 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) {
 		var after_alternative_pos = len(objCodeGenerator.InstructionList)
 
 		objCodeGenerator.changeOperand(jump_pos, after_alternative_pos)
+	case *LetStmtNode:
+		if node.InitializationExpr == nil{
+			objCodeGenerator.emit(vm.OpSetGlobal, 0)
+		} else{
+			var err = objCodeGenerator.Generate(node.InitializationExpr)
+			if err != nil{
+				return err
+			}
+			var symbol = objCodeGenerator.SymbolTable.Define(node.Identifier.Value)
+			objCodeGenerator.emit(vm.OpSetGlobal, symbol.Index)
+		}
+	case *AssignementStmt:
+		var err = objCodeGenerator.Generate(node.InitializationExpr)
+		if err != nil{
+			return err
+		}
+		var symbol, exists = objCodeGenerator.SymbolTable.Resolve(node.Identifier.Value)
+		if !exists{
+			fmt.Println("undefined symbol: ", node.Identifier.Value)
+			return errors.New("undefined symbol: " + node.Identifier.Value)
+		}
+		objCodeGenerator.emit(vm.OpSetGlobal, symbol.Index)
+	case *IdentifierNode:
+		var symbol, exists = objCodeGenerator.SymbolTable.Resolve(node.Value)
+		if !exists{
+			fmt.Println("undefined symbol: ", node.Value)
+			return errors.New("undefined symbol: " + node.Value)
+		}
+		objCodeGenerator.emit(vm.OpGetGlobal, symbol.Index)
+	default:
+		return errors.New("unknown data while generating obj code")
 	}
+
+	return nil
 }
 
 func (objCodeGenerator *ObjCodeGenerator) emit(
@@ -189,12 +247,12 @@ func (objCodeGenerator *ObjCodeGenerator) emit(
 func (objCodeGenerator *ObjCodeGenerator) addConstant(
 	data vm.Data,
 ) int {
-	objCodeGenerator.ConstantPool = append(
-		objCodeGenerator.ConstantPool,
+	*objCodeGenerator.ConstantPool = append(
+		*objCodeGenerator.ConstantPool,
 		data,
 	)
 
-	return len(objCodeGenerator.ConstantPool) - 1
+	return len(*objCodeGenerator.ConstantPool) - 1
 }
 
 func (objCodeGenerator *ObjCodeGenerator) replaceInstruction(pos int, new_instruction []byte) {

@@ -6,11 +6,15 @@ import (
 	"fmt"
 )
 
+const GlobalsSize = 65536
+
 type Vm struct {
 	sp           int
 	stack        []Data
-	constantPool []Data
+	ConstantPool *[]Data
 	instructions Instructions
+	symbolTable *SymbolTable
+	globals []Data
 }
 
 type Data interface {
@@ -26,13 +30,19 @@ var True = &Boolean{Value: true}
 var False = &Boolean{Value: false}
 var StackSize = 2048
 
-func New(ins Instructions, constPool []Data) Vm {
+func (vm *Vm)SetNewInput(ins Instructions){
+	vm.instructions = ins 
+}
+
+func New(ins Instructions, constPool *[]Data, symbolTable *SymbolTable) *Vm {
 	vm := Vm{
-		sp: 0, stack: []Data{}, constantPool: constPool,
+		sp: 0, stack: []Data{}, ConstantPool: constPool,
 		instructions: ins,
+		symbolTable: symbolTable,
+		globals: make([]Data, GlobalsSize),
 	}
 	vm.stack = make([]Data, StackSize)
-	return vm
+	return &vm
 }
 
 func (vm *Vm) Execute() error {
@@ -43,7 +53,7 @@ func (vm *Vm) Execute() error {
 		case OpConstant:
 			ip++
 			vm.push(
-				vm.constantPool[binary.BigEndian.Uint16(
+				(*vm.ConstantPool)[binary.BigEndian.Uint16(
 					vm.instructions[ip:ip+2],
 				)],
 			)
@@ -195,17 +205,35 @@ func (vm *Vm) Execute() error {
 		case OpJumpNotTruthy:
 			ip++
 			var condition_value, err = vm.pop()
-			if err != nil{
+			if err != nil {
 				return err
 			}
-			if condition_value.(*Boolean).Value == False.Value{
+			if condition_value.(*Boolean).Value == False.Value {
 				ip = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2])) - 1
-			} else{
+			} else {
 				ip++
 			}
 		case OpJump:
 			ip++
 			ip = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2])) - 1
+		case OpSetGlobal:
+			ip++
+			var global_index = binary.BigEndian.Uint16(vm.instructions[ip:ip+2])
+			ip++
+			var data, err = vm.pop()
+			vm.globals[global_index] = data
+
+			if err != nil{
+				return errors.New("stack underflow")
+			}
+		case OpGetGlobal:
+			ip++
+			var global_index = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2]))
+			ip++
+			var err = vm.push(vm.globals[global_index])
+			if err != nil{
+				return err
+			}
 		default:
 			fmt.Println("unkown instruction", op)
 		}

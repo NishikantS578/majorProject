@@ -2,6 +2,25 @@ package vm
 
 import "encoding/binary"
 
+const (
+	OpConstant OpCode = iota
+	OpAddition
+	OpSubtraction
+	OpMultiplication
+	OpDivision
+	OpNegation
+	OpTrue
+	OpFalse
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+	OpBooleanInversion
+	OpJumpNotTruthy
+	OpJump
+	OpSetGlobal
+	OpGetGlobal
+)
+
 type OperatorDefinition struct {
 	Name          string
 	OperandWidths []int
@@ -53,6 +72,14 @@ var OperatorDefinitions = map[OpCode]*OperatorDefinition{
 		Name:          "OpJump",
 		OperandWidths: []int{2},
 	},
+	OpGetGlobal:{
+		Name: "OpGetGlobal",
+		OperandWidths: []int{2},
+	},
+	OpSetGlobal:{
+		Name: "OpSetGlobal",
+		OperandWidths: []int{2},
+	},
 }
 
 func MakeInstruction(op OpCode, operands ...int) []byte {
@@ -84,20 +111,3 @@ func MakeInstruction(op OpCode, operands ...int) []byte {
 	}
 	return ins
 }
-
-const (
-	OpConstant OpCode = iota
-	OpAddition
-	OpSubtraction
-	OpMultiplication
-	OpDivision
-	OpNegation
-	OpTrue
-	OpFalse
-	OpEqual
-	OpNotEqual
-	OpGreaterThan
-	OpBooleanInversion
-	OpJumpNotTruthy
-	OpJump
-)
