@@ -47,21 +47,21 @@ type IfStmtNode struct {
 func (i *IfStmtNode) statementNode() {}
 func (i *IfStmtNode) literalString() {}
 
-type LetStmtNode struct{
-	Identifier IdentifierNode
+type LetStmtNode struct {
+	Identifier         IdentifierNode
 	InitializationExpr ExpressionNode
 }
 
-func (l *LetStmtNode) statementNode(){}
-func (l *LetStmtNode) literalString(){}
+func (l *LetStmtNode) statementNode() {}
+func (l *LetStmtNode) literalString() {}
 
-type AssignementStmt struct{
-	Identifier IdentifierNode
+type AssignementStmt struct {
+	Identifier         IdentifierNode
 	InitializationExpr ExpressionNode
 }
 
-func (l *AssignementStmt) statementNode(){}
-func (l *AssignementStmt) literalString(){}
+func (l *AssignementStmt) statementNode() {}
+func (l *AssignementStmt) literalString() {}
 
 type IntegerLiteralNode struct {
 	Value int64
@@ -112,10 +112,10 @@ type ObjCodeGenerator struct {
 	InstructionList vm.Instructions
 	ast             Node
 	ConstantPool    *[]vm.Data
-	SymbolTable *vm.SymbolTable
+	SymbolTable     *vm.SymbolTable
 }
 
-func (objCodeGenerator *ObjCodeGenerator)SetNewInput(ast Node){
+func (objCodeGenerator *ObjCodeGenerator) SetNewInput(ast Node) {
 	objCodeGenerator.InstructionList = vm.Instructions([]byte{})
 	objCodeGenerator.ast = ast
 }
@@ -124,8 +124,8 @@ func New(progAst Node) *ObjCodeGenerator {
 	return &ObjCodeGenerator{
 		InstructionList: vm.Instructions([]byte{}),
 		ast:             progAst,
-		SymbolTable: vm.NewSymbolTable(),
-		ConstantPool: &[]vm.Data{},
+		SymbolTable:     vm.NewSymbolTable(),
+		ConstantPool:    &[]vm.Data{},
 	}
 }
 
@@ -198,11 +198,11 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) error {
 
 		objCodeGenerator.changeOperand(jump_pos, after_alternative_pos)
 	case *LetStmtNode:
-		if node.InitializationExpr == nil{
+		if node.InitializationExpr == nil {
 			objCodeGenerator.emit(vm.OpSetGlobal, 0)
-		} else{
+		} else {
 			var err = objCodeGenerator.Generate(node.InitializationExpr)
-			if err != nil{
+			if err != nil {
 				return err
 			}
 			var symbol = objCodeGenerator.SymbolTable.Define(node.Identifier.Value)
@@ -210,18 +210,18 @@ func (objCodeGenerator *ObjCodeGenerator) Generate(node Node) error {
 		}
 	case *AssignementStmt:
 		var err = objCodeGenerator.Generate(node.InitializationExpr)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		var symbol, exists = objCodeGenerator.SymbolTable.Resolve(node.Identifier.Value)
-		if !exists{
+		if !exists {
 			fmt.Println("undefined symbol: ", node.Identifier.Value)
 			return errors.New("undefined symbol: " + node.Identifier.Value)
 		}
 		objCodeGenerator.emit(vm.OpSetGlobal, symbol.Index)
 	case *IdentifierNode:
 		var symbol, exists = objCodeGenerator.SymbolTable.Resolve(node.Value)
-		if !exists{
+		if !exists {
 			fmt.Println("undefined symbol: ", node.Value)
 			return errors.New("undefined symbol: " + node.Value)
 		}

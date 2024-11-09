@@ -40,7 +40,7 @@ const (
 	IF                  = "if"
 	ELSE                = "else"
 	RETURN              = "RETURN"
-	LET = "LET KEYWORD"
+	LET                 = "LET KEYWORD"
 )
 
 var precedences = map[TokenType]int{
@@ -77,7 +77,7 @@ type Parser struct {
 	prefix_parse_fns map[TokenType]prefix_parse_fn
 }
 
-func (parser *Parser)SetNewInput(tokenArr []Token){
+func (parser *Parser) SetNewInput(tokenArr []Token) {
 	parser.Ast = objCodeGenerator.StatementBlockNode{}
 	parser.tokenArr = tokenArr
 	*parser.cursorPos = 0
@@ -133,7 +133,7 @@ func (parser *Parser) ParseProgram() int {
 
 func (parser *Parser) peek(args ...int) Token {
 	var offset = 0
-	if len(args) > 0{
+	if len(args) > 0 {
 		offset = args[0]
 	}
 	var token Token
@@ -182,9 +182,9 @@ func (parser *Parser) parseStatement() (objCodeGenerator.StatementNode, error) {
 	case LET:
 		stmt_node, err = parser.parse_let_statement()
 	default:
-		if parser.peek(1).TypeOfToken == ASSIGNMENT_OPERATOR{
+		if parser.peek(1).TypeOfToken == ASSIGNMENT_OPERATOR {
 			stmt_node, err = parser.parse_assignment_statement()
-		} else{
+		} else {
 			stmt_node, err = parser.parseExpression(LOWEST)
 		}
 		if err != nil {
@@ -294,12 +294,12 @@ func (parser *Parser) parse_bool_keyword() (objCodeGenerator.ExpressionNode, err
 	return &exp_node, nil
 }
 
-func (parser *Parser) parse_let_statement() (*objCodeGenerator.LetStmtNode, error){
+func (parser *Parser) parse_let_statement() (*objCodeGenerator.LetStmtNode, error) {
 	var let_stmt_node = &objCodeGenerator.LetStmtNode{}
 	var current_token = parser.peek()
 	var err error
 
-	if current_token.TypeOfToken != LET{
+	if current_token.TypeOfToken != LET {
 		return let_stmt_node, errors.New("expected let keyword")
 	}
 	parser.readToken()
@@ -310,21 +310,21 @@ func (parser *Parser) parse_let_statement() (*objCodeGenerator.LetStmtNode, erro
 	parser.readToken()
 	current_token = parser.peek()
 
-	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR{
+	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR {
 		return let_stmt_node, nil
 	}
 	parser.readToken()
 
 	let_stmt_node.InitializationExpr, err = parser.parseExpression(LOWEST)
-	
-	if err != nil{
+
+	if err != nil {
 		return let_stmt_node, err
 	}
 
 	return let_stmt_node, nil
 }
 
-func (parser *Parser) parse_assignment_statement() (*objCodeGenerator.AssignementStmt, error){
+func (parser *Parser) parse_assignment_statement() (*objCodeGenerator.AssignementStmt, error) {
 	var assignment_stmt_node = &objCodeGenerator.AssignementStmt{}
 	var current_token = parser.peek()
 	var err error
@@ -334,20 +334,19 @@ func (parser *Parser) parse_assignment_statement() (*objCodeGenerator.Assignemen
 	parser.readToken()
 	current_token = parser.peek()
 
-	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR{
+	if current_token.TypeOfToken != ASSIGNMENT_OPERATOR {
 		return assignment_stmt_node, nil
 	}
 	parser.readToken()
 
 	assignment_stmt_node.InitializationExpr, err = parser.parseExpression(LOWEST)
-	
-	if err != nil{
+
+	if err != nil {
 		return assignment_stmt_node, err
 	}
 
 	return assignment_stmt_node, nil
 }
-
 
 func (parser *Parser) parse_if_statement() (*objCodeGenerator.IfStmtNode, error) {
 	var ifstmt_node = objCodeGenerator.IfStmtNode{}

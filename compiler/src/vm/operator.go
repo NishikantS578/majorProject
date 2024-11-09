@@ -72,12 +72,12 @@ var OperatorDefinitions = map[OpCode]*OperatorDefinition{
 		Name:          "OpJump",
 		OperandWidths: []int{2},
 	},
-	OpGetGlobal:{
-		Name: "OpGetGlobal",
+	OpGetGlobal: {
+		Name:          "OpGetGlobal",
 		OperandWidths: []int{2},
 	},
-	OpSetGlobal:{
-		Name: "OpSetGlobal",
+	OpSetGlobal: {
+		Name:          "OpSetGlobal",
 		OperandWidths: []int{2},
 	},
 }

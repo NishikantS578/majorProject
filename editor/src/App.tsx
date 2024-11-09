@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import CodeBlock from './components/CodeBlock'
-
+import Blocks from './blocks'
 
 const save = (editor_content_state: any) => {
   console.log(editor_content_state)
@@ -15,6 +14,30 @@ const compileRun = () => {
   window.ipcRenderer.invoke("compileAndRun")
 }
 
+function render_flow_chart(node: any): any {
+  if (node instanceof Blocks.StartBlock) {
+    return <>
+      {node.Block()}
+      {render_flow_chart(node.child_block)}
+    </>
+  } else if (node instanceof Blocks.ProcessingBlock) {
+    return <>
+      {node.Block()}
+      {render_flow_chart(node.child_block)}
+    </>
+  } else if (node instanceof Blocks.IfBlock) {
+    return <>
+      {node.Block()}
+      {render_flow_chart(node.true_child_block)}
+      {render_flow_chart(node.false_child_block)}
+    </>
+  } else if (node instanceof Blocks.EndBlock) {
+    return <>
+      {node.Block()}
+    </>
+  }
+}
+
 function App() {
   const [editor_content, set_editor_content_state] = useState("")
   const [output_content, set_output_content] = useState("")
@@ -27,6 +50,12 @@ function App() {
   window.ipcRenderer.on("compiledAndRun", (_, data) => {
     set_output_content(data)
   })
+
+  let start_block = new Blocks.StartBlock(null)
+  let processing_block = new Blocks.ProcessingBlock(null, null)
+  start_block.child_block = processing_block
+  let end_block = new Blocks.EndBlock()
+  processing_block.child_block = end_block
 
   return (
     <>
@@ -62,7 +91,9 @@ function App() {
             :
             (
               <div className='visualEditor w-full h-full'>
-                <CodeBlock arrow_start_x={0} arrow_start_y={0}></CodeBlock>
+                {
+                  render_flow_chart(start_block)
+                }
               </div>
             )
         }

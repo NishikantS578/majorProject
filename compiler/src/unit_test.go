@@ -49,10 +49,12 @@ func TestCompiler(t *testing.T) {
 		"if(4==4){3*3}":          "9",
 		"if(4==3){1+1}else{9*2}": "18",
 		"if(4==4){1+1}else{9*2}": "2",
-		"let one = 2\none": "2",
-		"let two = 2\ntwo+5": "7",
-		"let one = 1\nlet two=2\nlet three=3\nlet four=4\nlet five = one/(two-three)+four\nfive": "3",
+		"let one = 2\none":       "2",
+		"let two = 2\ntwo+5":     "7",
+		"let one = 1\nlet two=2\nlet three=3\nlet four=4\nlet five = one/(two-three)+four\nfive":        "3",
 		"let one = 1\none=8\nlet two=2\nlet three=3\nlet four=4\nlet five = one/(two-three)+four\nfive": "-4",
+		"1 + 2 + 3 - 5 -1 + 6 / 2 * 5\n\nlet a = 5\nlet b = 6\nlet c = a+b*(b-a)/a/(b/a)\nc":            "6",
+		"let a = 5\nlet b = 6\nlet c = a+b*(b-a)/a/(b/a)\nc\nif (11==11){\nc-11\n}\nelse{\nc+1\n}":      "-5",
 	}
 
 	for input_string, output_expected := range outputs_expected {

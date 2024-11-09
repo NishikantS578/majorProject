@@ -110,11 +110,9 @@ const openFile = (_: any, win: any) => {
 }
 
 const compileAndRun = (_: any, win: any) => {
-  exec(" mnm " + openedFilePath + " && nasm -felf64 app.asm -o out.o && ld out.o && ./a.out", (err, stdout, stderr) => {
+  exec(" ../compiler/build/compiler " + openedFilePath, (err, stdout, stderr) => {
+    console.log(stdout)
     win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
-    exec("rm ./app.asm ./out.o ./a.out", (_) => {
-
-    })
   })
 }
 

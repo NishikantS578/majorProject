@@ -13,8 +13,8 @@ type Vm struct {
 	stack        []Data
 	ConstantPool *[]Data
 	instructions Instructions
-	symbolTable *SymbolTable
-	globals []Data
+	symbolTable  *SymbolTable
+	globals      []Data
 }
 
 type Data interface {
@@ -30,16 +30,16 @@ var True = &Boolean{Value: true}
 var False = &Boolean{Value: false}
 var StackSize = 2048
 
-func (vm *Vm)SetNewInput(ins Instructions){
-	vm.instructions = ins 
+func (vm *Vm) SetNewInput(ins Instructions) {
+	vm.instructions = ins
 }
 
 func New(ins Instructions, constPool *[]Data, symbolTable *SymbolTable) *Vm {
 	vm := Vm{
 		sp: 0, stack: []Data{}, ConstantPool: constPool,
 		instructions: ins,
-		symbolTable: symbolTable,
-		globals: make([]Data, GlobalsSize),
+		symbolTable:  symbolTable,
+		globals:      make([]Data, GlobalsSize),
 	}
 	vm.stack = make([]Data, StackSize)
 	return &vm
@@ -218,20 +218,20 @@ func (vm *Vm) Execute() error {
 			ip = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2])) - 1
 		case OpSetGlobal:
 			ip++
-			var global_index = binary.BigEndian.Uint16(vm.instructions[ip:ip+2])
+			var global_index = binary.BigEndian.Uint16(vm.instructions[ip : ip+2])
 			ip++
 			var data, err = vm.pop()
 			vm.globals[global_index] = data
 
-			if err != nil{
+			if err != nil {
 				return errors.New("stack underflow")
 			}
 		case OpGetGlobal:
 			ip++
-			var global_index = int(binary.BigEndian.Uint16(vm.instructions[ip:ip+2]))
+			var global_index = int(binary.BigEndian.Uint16(vm.instructions[ip : ip+2]))
 			ip++
 			var err = vm.push(vm.globals[global_index])
-			if err != nil{
+			if err != nil {
 				return err
 			}
 		default:
