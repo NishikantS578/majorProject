@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Blocks from './blocks'
-import parser from './parser'
+// import parser from './parser'
 
 const save = (editor_content_state: any) => {
   console.log(editor_content_state)
@@ -52,14 +52,15 @@ function App() {
     set_output_content(data)
   })
 
-  // let start_block = new Blocks.StartBlock(null)
-  // let processing_block = new Blocks.ProcessingBlock(null, null)
-  // start_block.child_block = processing_block
-  // let end_block = new Blocks.EndBlock()
-  // processing_block.child_block = end_block
+  let start_block = new Blocks.StartBlock(null)
+  let processing_block = new Blocks.ProcessingBlock(null, null)
+  start_block.child_block = processing_block
+  let end_block = new Blocks.EndBlock()
+  processing_block.child_block = end_block
+  let flow_chart = start_block
 
-  let ast = parser(editor_content)
-  let flow_chart = Blocks.ast_to_blocks(ast)
+  // let ast = parser(editor_content)
+  // let flow_chart = Blocks.ast_to_blocks(ast)
 
   return (
     <>

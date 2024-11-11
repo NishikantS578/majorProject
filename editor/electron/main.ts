@@ -110,10 +110,18 @@ const openFile = (_: any, win: any) => {
 }
 
 const compileAndRun = (_: any, win: any) => {
-  exec(" ../compiler/build/compiler " + openedFilePath, (err, stdout, stderr) => {
-    console.log(stdout)
-    win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
-  })
+  console.log(process.platform)
+  if (process.platform == "win32") {
+    exec(" ..\\compiler\\build\\compiler.exe " + openedFilePath, (err, stdout, stderr) => {
+      console.log(stdout)
+      win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
+    })
+  } else {
+    exec(" ../compiler/build/compiler " + openedFilePath, (err, stdout, stderr) => {
+      console.log(stdout)
+      win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
+    })
+  }
 }
 
 app.whenReady().then(createWindow)
