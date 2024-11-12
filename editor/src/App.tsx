@@ -54,9 +54,19 @@ function App() {
 
   let start_block = new Blocks.StartBlock(null)
   let processing_block = new Blocks.ProcessingBlock(null, null)
+  let processing_block2 = new Blocks.ProcessingBlock(null, null)
   start_block.child_block = processing_block
   let end_block = new Blocks.EndBlock()
-  processing_block.child_block = end_block
+  processing_block.child_block = processing_block2
+  processing_block2.child_block = end_block
+  processing_block.statements = "let a = 11"
+  processing_block2.statements = "let b = 12"
+  let if_block = new Blocks.IfBlock('11 == 11', null, null)
+  processing_block2.child_block = if_block
+  let processing_block3 = new Blocks.ProcessingBlock(null, null)
+  processing_block3.statements = "let c = 13"
+  if_block.true_child_block = processing_block3
+  processing_block3.child_block = end_block
   let flow_chart = start_block
 
   // let ast = parser(editor_content)
@@ -95,7 +105,7 @@ function App() {
             )
             :
             (
-              <div className='visualEditor w-full h-full'>
+              <div className='visualEditor w-full h-full flex flex-col'>
                 {
                   render_flow_chart(flow_chart)
                 }
