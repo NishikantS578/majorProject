@@ -60,6 +60,7 @@
   font-size: 2rem;
   background: black;
   color: #ccc;
+  padding: 16px;
 }
 
 :root {
@@ -118,6 +119,10 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.active-window {
+  background-color: #eee;
 }
 
 @media (prefers-color-scheme: light) {

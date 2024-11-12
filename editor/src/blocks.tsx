@@ -33,7 +33,7 @@ class ProcessingBlock {
         return <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }} className="flex-col">
             <div className="w-[2px] bg-white h-5"></div>
             <div style={{ border: "1px solid white", padding: "10px 20px" }}>
-                processing block - {this.statements}
+                {this.statements}
             </div>
             <div className="w-[2px] bg-white h-5"></div>
         </div>

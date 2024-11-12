@@ -29,8 +29,10 @@ function render_flow_chart(node: any): any {
   } else if (node instanceof Blocks.IfBlock) {
     return <>
       {node.Block()}
-      {render_flow_chart(node.true_child_block)}
-      {render_flow_chart(node.false_child_block)}
+      <div className="">
+        {render_flow_chart(node.true_child_block)}
+        {render_flow_chart(node.false_child_block)}
+      </div>
     </>
   } else if (node instanceof Blocks.EndBlock) {
     return <>
@@ -74,30 +76,32 @@ function App() {
 
   return (
     <>
-      <div className="menubar">
-        <button onMouseDown={open}>Open</button>
-        <button onMouseDown={() => save(editor_content)}>
-          Save
-        </button>
-        <button onMouseDown={compileRun}>
-          Compile and Run
-        </button>
-        <button onClick={() => {
-          if (window_type == "text_editor") {
-            set_window_type("visual_editor")
-          } else {
-            set_window_type("text_editor")
-          }
-        }}>
-          {window_type}
-        </button>
+      <div className="menubar flex justify-between">
+        <div className='flex menubar'>
+          <button onMouseDown={open}>Open</button>
+          <button onMouseDown={() => save(editor_content)}>
+            Save
+          </button>
+          <button onMouseDown={compileRun}>
+            Compile and Run
+          </button>
+        </div>
+
+        <div className="flex menubar">
+          <button onClick={() => { set_window_type("text_editor") }} className={window_type == "text_editor" ? "active-window" : ""}>
+            Text Editor
+          </button>
+          <button onClick={() => { set_window_type("visual_editor") }} className={window_type == "visual_editor" ? "active-window" : ""}>
+            Visual Editor
+          </button>
+        </div>
       </div>
 
       <div className='editor min-w-fit w-full flex-auto'>
         {
           window_type == "text_editor" ?
             (
-              <textarea className="editorTab min-w-fit text-nowrap w-full h-full"
+              <textarea className="editorTab min-w-fit text-nowrap w-full h-full text-lg p-4"
                 onChange={
                   (e) => set_editor_content_state(e.target.value)}
                 value={editor_content}>
