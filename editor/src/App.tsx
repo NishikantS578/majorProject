@@ -11,8 +11,8 @@ const open = () => {
   window.ipcRenderer.invoke("openFile")
 }
 
-const compileRun = () => {
-  window.ipcRenderer.invoke("compileAndRun")
+const compileRun = (file_content: any) => {
+  window.ipcRenderer.invoke("compileAndRun", file_content)
 }
 
 function render_flow_chart(node: any): any {
@@ -47,7 +47,7 @@ function App() {
   const [window_type, set_window_type] = useState("text_editor")
 
   window.ipcRenderer.on("openedFile", (_, data) => {
-    set_editor_content_state(data)
+    set_editor_content_state(data.fileContent)
   })
 
   window.ipcRenderer.on("compiledAndRun", (_, data) => {
@@ -82,7 +82,7 @@ function App() {
           <button onMouseDown={() => save(editor_content)}>
             Save
           </button>
-          <button onMouseDown={compileRun}>
+          <button onMouseDown={() => compileRun(editor_content)}>
             Compile and Run
           </button>
         </div>

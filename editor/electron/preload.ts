@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // ...
   saveFile: (fileContent: any) => ipcRenderer.invoke("saveFile", fileContent),
   openFile: () => ipcRenderer.invoke("openFile"),
-  compileAndRun: () => ipcRenderer.invoke("compileAndRun"),
+  compileAndRun: (file_content: any) => ipcRenderer.invoke("compileAndRun", file_content),
   openedFile: (callback: any) => ipcRenderer.on("openedFile", (_, fileContent) => callback(fileContent)),
   compiledAndRun: (callback: any) => ipcRenderer.on("compiledAndRun", (_, output) => callback(output))
 })

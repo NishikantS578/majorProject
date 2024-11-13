@@ -48,7 +48,9 @@ function createWindow() {
 
     ipcMain.handle("saveFile", saveFile)
     ipcMain.handle("openFile", (e) => openFile(e, win))
-    ipcMain.handle("compileAndRun", (e) => compileAndRun(e, win))
+    ipcMain.handle("compileAndRun", (e, file_content) => {
+      console.log(file_content)
+      compileAndRun(e, win, file_content)})
   })
 
   if (VITE_DEV_SERVER_URL) {
@@ -104,19 +106,23 @@ const openFile = (_: any, win: any) => {
     }
     openedFilePath = res.filePaths[0]
     fs.readFile(res.filePaths[0], "utf-8", (_, fileContent) => {
-      win.webContents.send("openedFile", fileContent)
+      win.webContents.send("openedFile", {fileContent, openedFilePath})
     })
   })
 }
 
-const compileAndRun = (_: any, win: any) => {
+const compileAndRun = (_: any, win: any, file_content: any) => {
   console.log(process.platform)
   if (process.platform == "win32") {
+    console.log(file_content)
+    fs.writeFileSync(openedFilePath, file_content)
     exec(" ..\\compiler\\build\\compiler.exe " + openedFilePath, (err, stdout, stderr) => {
       console.log(stdout)
       win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
     })
   } else {
+    console.log(file_content)
+    fs.writeFileSync(openedFilePath, file_content)
     exec(" ../compiler/build/compiler " + openedFilePath, (err, stdout, stderr) => {
       console.log(stdout)
       win.webContents.send("compiledAndRun", stdout + stderr + err?.code)
