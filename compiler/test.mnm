@@ -4,14 +4,4 @@ let a = 5
 let b = 6
 
 let c = a+b*(b-a)/a/(b/a)
-c
-c+5
-
-if (11==11)
-{
-c-10
-}
-else
-{
 c+1
-}
